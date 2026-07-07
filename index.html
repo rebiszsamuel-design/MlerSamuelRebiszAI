@@ -18,282 +18,39 @@
       --gold: #f1c40f;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, sans-serif;
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-    }
-    #sidebar {
-      width: 260px;
-      background: var(--sidebar);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 16px 0;
-    }
-    .sidebar-header {
-      padding: 0 20px 16px;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--accent);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .sidebar-header i.fa-leaf {
-      font-size: 1.8rem;
-      color: var(--accent);
-    }
-    .new-chat {
-      margin: 16px 20px;
-      padding: 12px;
-      background: var(--accent-dim);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .new-chat:hover { background: var(--accent); transform: translateY(-1px); }
-    .chat-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 12px;
-    }
-    .chat-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 16px;
-      margin: 4px 0;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.18s;
-      position: relative;
-    }
-    .chat-item:hover, .chat-item.active {
-      background: rgba(46,204,113,0.12);
-      color: var(--accent);
-    }
-    .chat-item .title {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding-right: 10px;
-    }
-    .delete-chat {
-      opacity: 0;
-      width: 28px;
-      height: 28px;
-      display: grid;
-      place-items: center;
-      border-radius: 6px;
-      color: #888;
-      transition: all 0.2s;
-      font-size: 1.1rem;
-    }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; height: 100vh; display: flex; overflow: hidden; }
+    #sidebar { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 0; }
+    .sidebar-header { padding: 0 20px 16px; font-size: 1.5rem; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .sidebar-header i.fa-leaf { font-size: 1.8rem; color: var(--accent); }
+    .new-chat { margin: 16px 20px; padding: 12px; background: var(--accent-dim); color: #000; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .new-chat:hover { background: var(--accent); }
+    .chat-list { flex: 1; overflow-y: auto; padding: 8px 12px; }
+    .chat-item { display: flex; align-items: center; padding: 10px 16px; margin: 4px 0; border-radius: 8px; cursor: pointer; }
+    .chat-item:hover, .chat-item.active { background: rgba(46,204,113,0.12); color: var(--accent); }
+    .chat-item .title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .delete-chat { opacity: 0; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; color: #888; }
     .chat-item:hover .delete-chat { opacity: 1; }
-    .delete-chat:hover {
-      background: rgba(255, 70, 70, 0.25);
-      color: #ff5555;
-    }
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      padding: 14px 24px;
-      border-bottom: 1px solid var(--border);
-      font-size: 1.25rem;
-      font-weight: 500;
-      background: var(--surface);
-    }
-    .chat-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .message {
-      display: flex;
-      gap: 12px;
-      max-width: 80%;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: fadeIn 0.4s forwards;
-    }
+    #main { flex: 1; display: flex; flex-direction: column; }
+    header { padding: 14px 24px; border-bottom: 1px solid var(--border); font-size: 1.25rem; background: var(--surface); }
+    .chat-container { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .message { display: flex; gap: 12px; max-width: 80%; opacity: 0; animation: fadeIn 0.4s forwards; }
     .message.user { flex-direction: row-reverse; align-self: flex-end; }
     @keyframes fadeIn { to { opacity:1; transform:translateY(0); } }
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--accent-dim);
-      color: #000;
-      display: grid;
-      place-items: center;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-dim); color: #000; display: grid; place-items: center; }
     .message.user .avatar { background: #27ae60; }
-    .bubble {
-      padding: 12px 16px;
-      border-radius: 14px;
-      background: var(--surface);
-      line-height: 1.5;
-    }
-    .message.user .bubble {
-      background: var(--accent-dim);
-      color: #000;
-      border-bottom-right-radius: 4px;
-    }
-    .generated-image {
-      max-width: 460px;
-      border-radius: 14px;
-      border: 2px solid var(--accent-dim);
-      margin-top: 8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    .input-area {
-      padding: 16px 24px;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-    }
-    .input-wrapper {
-      display: flex;
-      align-items: end;
-      background: rgba(46,204,113,0.08);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 6px;
-      gap: 6px;
-    }
-    textarea {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 1.05rem;
-      padding: 12px 18px;
-      resize: none;
-      min-height: 48px;
-      max-height: 160px;
-      line-height: 1.4;
-    }
+    .bubble { padding: 12px 16px; border-radius: 14px; background: var(--surface); line-height: 1.5; }
+    .message.user .bubble { background: var(--accent-dim); color: #000; }
+    .input-area { padding: 16px 24px; background: var(--surface); border-top: 1px solid var(--border); }
+    .input-wrapper { display: flex; align-items: end; background: rgba(46,204,113,0.08); border: 1px solid var(--border); border-radius: 999px; padding: 6px; gap: 6px; }
+    textarea { flex: 1; background: transparent; border: none; color: var(--text); font-size: 1.05rem; padding: 12px 18px; resize: none; min-height: 48px; max-height: 160px; }
     textarea:focus { outline: none; }
-    button.send, button.regenerate, .attach-btn, .image-gen-btn {
-      width: 44px;
-      height: 44px;
-      border: none;
-      border-radius: 50%;
-      margin: 4px;
-      cursor: pointer;
-      font-size: 1.35rem;
-      transition: 0.2s;
-      display: grid;
-      place-items: center;
-    }
-    button.send {
-      background: var(--accent);
-      color: #000;
-    }
-    button.send:disabled {
-      background: #2e7d32;
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    button.regenerate, .attach-btn, .image-gen-btn {
-      background: transparent;
-      color: var(--text-dim);
-    }
-    button.regenerate:hover, .attach-btn:hover, .image-gen-btn:hover {
-      background: rgba(46,204,113,0.15);
-      color: var(--accent);
-    }
-    .image-gen-btn:hover { color: var(--gold); }
-    .tooltip {
-      position: relative;
-    }
-    .tooltip::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 120%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e3a2a;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s;
-      z-index: 20;
-    }
-    .tooltip:hover::after { opacity: 1; }
-    .preview-container {
-      margin: 8px 16px 4px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .image-preview {
-      position: relative;
-      max-height: 130px;
-    }
-    .image-preview img {
-      max-height: 130px;
-      border-radius: 10px;
-      border: 2px solid var(--accent-dim);
-    }
-    .remove-preview {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #ff5555;
-      color: white;
-      border: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-    .modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: var(--surface);
-      padding: 28px;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 520px;
-      border: 1px solid var(--accent);
-    }
+    button.send { background: var(--accent); color: #000; width: 44px; height: 44px; border: none; border-radius: 50%; cursor: pointer; }
+    button.send:disabled { opacity: 0.55; cursor: not-allowed; }
   </style>
 </head>
 <body>
 <div id="sidebar">
-  <div class="sidebar-header">
-    <i class="fa-solid fa-leaf"></i>
-    Mullar
-  </div>
+  <div class="sidebar-header"><i class="fa-solid fa-leaf"></i> Mullar</div>
   <button class="new-chat" onclick="startNewChat()">Nowy czat</button>
   <div class="chat-list" id="chatList"></div>
 </div>
@@ -302,38 +59,16 @@
   <div class="chat-container" id="chat"></div>
   <div class="input-area">
     <div id="previewArea" class="preview-container"></div>
-   
     <div class="input-wrapper">
-      <button class="attach-btn" id="attachBtn" title="Dodaj zdjęcie">
-        <i class="fa-solid fa-paperclip"></i>
-      </button>
-      <button class="image-gen-btn tooltip" id="imageGenBtn" data-tooltip="Generuj obraz">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>
-      </button>
-      <input type="file" id="fileInput" accept="image/*" multiple hidden>
-      <textarea id="input" rows="1" placeholder="Napisz wiadomość lub dodaj zdjęcie..."></textarea>
-     
-      <button class="regenerate tooltip" id="regenerateBtn" data-tooltip="Pomyśl Ponownie">
-        <i class="fa-solid fa-arrows-rotate"></i>
-      </button>
+      <textarea id="input" rows="1" placeholder="Napisz wiadomość..."></textarea>
       <button class="send" id="sendBtn" disabled><i class="fa-solid fa-arrow-up"></i></button>
     </div>
   </div>
 </div>
 
-<!-- Modal generowania obrazu -->
-<div id="imageModal" class="modal">
-  <div class="modal-content">
-    <h2>Generuj obraz</h2>
-    <textarea id="imagePrompt" rows="4" style="width:100%; margin:15px 0; padding:10px;" placeholder="Opisz obraz..."></textarea>
-    <button onclick="generateImage()" style="padding:10px 20px; background:var(--accent); color:#000; border:none; border-radius:8px; cursor:pointer;">Generuj</button>
-    <button onclick="closeImageModal()" style="padding:10px 20px; margin-left:10px; background:#333; color:white; border:none; border-radius:8px; cursor:pointer;">Anuluj</button>
-  </div>
-</div>
-
 <script>
 // ==================== CONFIG ====================
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY = "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";
 
 // ==================== STATE ====================
 let currentChatId = null;
@@ -342,72 +77,152 @@ let currentImages = [];
 
 // ==================== SPECIAL COMMANDS ====================
 function handleSpecialCommands(text) {
-  const trimmed = text.trim();
-  
-  if (trimmed === "!dcd") {
-    return "Kolejowy Mikos Obejrzyj se najnowszy odcinek mordo";
-  }
-  
-  if (trimmed === "!Best") {
-    return "EP07-355";
-  }
-  
+  const t = text.trim();
+  if (t === "!dcd") return "Kolejowy Mikos Obejrzyj se najnowszy odcinek mordo";
+  if (t === "!Best") return "EP07-355";
   return null;
 }
 
-// ==================== META PROTECTION ====================
-function isForbiddenMetaQuestion(text) {
-  if (!text || typeof text !== "string") return false;
-  const lower = text.toLowerCase().trim().replace(/[?!.,:;'"„”]/g, '');
-  const forbiddenPatterns = [
-    "kim jesteś", "kto jesteś", "kim ty jesteś", "kto ty jesteś",
-    "jak masz na imię", "jak się nazywasz", "jakie masz imię", "jakie jest twoje imię",
-    "kto cię stworzył", "kto cię zrobił", "kto cię wymyślił", "kto cię zaprogramował",
-    "opowiedz mi o sobie", "opowiedz swoją historię", "twoja historia", "twoje pochodzenie",
-    "tell me about yourself", "who are you", "who created you", "who made you",
-    "jesteś grok", "jesteś claude", "jesteś chatgpt", "jesteś gemini", "jesteś llama",
-    "z jakiego jesteś modelu", "jaki to model", "jesteś modelem", "jaki model",
-    "kto jest twoim twórcą", "kto cię zbudował", "opowiedz mi twoją historię"
-  ];
-  return forbiddenPatterns.some(p => lower.includes(p));
-}
-
 // ==================== UTILS ====================
-function generateChatId() {
-  return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
-}
-function saveChats() {
-  localStorage.setItem("mullar_chats", JSON.stringify(chats));
-}
-function getTitleFromFirstMessage(messages) {
-  const userMsg = messages.find(m => m.role === "user");
-  if (!userMsg) return "Nowy czat";
-  let title = typeof userMsg.content === "string" ? userMsg.content.trim().substring(0, 45) : "Obraz";
-  return title.length === 45 ? title + "..." : title || "Nowy czat";
+function generateChatId() { return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2,9); }
+function saveChats() { localStorage.setItem("mullar_chats", JSON.stringify(chats)); }
+
+// ==================== RENDER ====================
+function renderChatList() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  Object.keys(chats).sort((a,b) => chats[b].updated - chats[a].updated).forEach(id => {
+    const item = document.createElement("div");
+    item.className = `chat-item ${id === currentChatId ? 'active' : ''}`;
+    item.innerHTML = `<div class="title">${chats[id].title}</div>`;
+    item.onclick = () => loadChat(id);
+    list.appendChild(item);
+  });
 }
 
-// ==================== RENDER & CHAT FUNCTIONS ====================
-function renderChatList() { /* ... (bez zmian) ... */ }
-function startNewChat() { /* ... (bez zmian) ... */ }
-function loadChat(id) { /* ... (bez zmian) ... */ }
-function addMessage(text, who, imageUrl = null, silent = false) {
+function startNewChat() {
+  currentChatId = null;
+  document.getElementById("chat").innerHTML = "";
+  document.getElementById("chatTitle").textContent = "Nowy czat";
+  renderChatList();
+}
+
+function loadChat(id) {
+  currentChatId = id;
+  renderChatList();
+  const data = chats[id];
+  document.getElementById("chatTitle").textContent = data.title;
+  const container = document.getElementById("chat");
+  container.innerHTML = "";
+  data.messages.slice(1).forEach(msg => {
+    if (typeof msg.content === "string") addMessage(msg.content, msg.role === "user" ? "user" : "ai", true);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function addMessage(text, who, silent = false) {
   const div = document.createElement("div");
   div.className = `message ${who}`;
-  let html = `<div class="avatar">${who === "user" ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-leaf"></i>'}</div><div class="bubble">`;
-  if (text) html += text.replace(/\n/g, "<br>");
-  if (imageUrl) html += `<img src="${imageUrl}" class="generated-image">`;
-  html += `</div>`;
+  div.innerHTML = `
+    <div class="avatar">${who === "user" ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-leaf"></i>'}</div>
+    <div class="bubble">${text.replace(/\n/g, "<br>")}</div>
+  `;
   document.getElementById("chat").appendChild(div);
   if (!silent) document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
 }
-function showTyping() { /* ... (bez zmian) ... */ }
 
-// Reszta kodu (image upload, generate image, events itd.) jest taka sama jak wcześniej.
+// ==================== SEND MESSAGE ====================
+async function sendMessage(userText = "") {
+  if (!userText) return;
 
- // (Dla skrócenia nie wklejam całej reszty tutaj - ale w pliku który Ci wysłałem wcześniej jest kompletny)
+  const commandResponse = handleSpecialCommands(userText);
+  if (commandResponse) {
+    addMessage(userText, "user");
+    addMessage(commandResponse, "ai");
 
-**Pełny kod jest za długi do jednej wiadomości.** Najłatwiej będzie jak skopiujesz cały kod z poprzedniej odpowiedzi (tej z `write_file`).
+    if (!currentChatId) {
+      currentChatId = generateChatId();
+      chats[currentChatId] = { title: "Nowy czat", messages: [{ role: "system", content: "Jesteś Mullar" }], updated: Date.now() };
+    }
+    chats[currentChatId].messages.push({ role: "user", content: userText });
+    chats[currentChatId].messages.push({ role: "assistant", content: commandResponse });
+    chats[currentChatId].updated = Date.now();
+    chats[currentChatId].title = userText.substring(0, 30);
+    saveChats();
+    renderChatList();
+    return;
+  }
 
-Jeśli nie możesz go pobrać, powiedz mi – mogę Ci wysłać kod w częściach albo pomóc inaczej. 
+  // Normalna wiadomość (do API)
+  if (!currentChatId) {
+    currentChatId = generateChatId();
+    chats[currentChatId] = { title: "Nowy czat", messages: [{ role: "system", content: "Jesteś Mullar" }], updated: Date.now() };
+  }
 
-Chcesz żebym wysłał Ci pełny kod podzielony na części?
+  addMessage(userText, "user");
+  chats[currentChatId].messages.push({ role: "user", content: userText });
+
+  const typing = document.createElement("div");
+  typing.textContent = "Mullar pisze...";
+  document.getElementById("chat").appendChild(typing);
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        messages: chats[currentChatId].messages,
+        temperature: 0.85,
+        max_tokens: 800
+      })
+    });
+    const data = await res.json();
+    const reply = data.choices[0].message.content.trim();
+    typing.remove();
+    addMessage(reply, "ai");
+    chats[currentChatId].messages.push({ role: "assistant", content: reply });
+    chats[currentChatId].updated = Date.now();
+    saveChats();
+    renderChatList();
+  } catch (e) {
+    typing.remove();
+    addMessage("Błąd połączenia.", "ai");
+  }
+}
+
+// ==================== EVENTS ====================
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("sendBtn");
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (text) {
+      sendMessage(text);
+      input.value = "";
+    }
+  }
+});
+
+sendBtn.addEventListener("click", () => {
+  const text = input.value.trim();
+  if (text) {
+    sendMessage(text);
+    input.value = "";
+  }
+});
+
+input.addEventListener("input", () => {
+  sendBtn.disabled = !input.value.trim();
+});
+
+// ==================== INIT ====================
+function init() {
+  renderChatList();
+}
+init();
+</script>
+</body>
+</html>
