@@ -114,7 +114,7 @@
       color: #ff5555;
     }
 
-    #main {
+    #main {F
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -358,7 +358,7 @@
 
 <script>
 // ==================== CONFIG ====================
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY = "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";
 
 // ==================== STATE ====================
 let currentChatId = null;
@@ -632,102 +632,63 @@ async function sendMessage(userText = "", isRegenerate = false) {
     };
   }
 
-  // ── BLOKADA PYTAŃ O TOŻSAMOŚĆ / TWÓRCÓW / HISTORIĘ ────────────────
-  if (!isRegenerate && userText && isForbiddenMetaQuestion(userText)) {
+ // ==================== KOMENDY + BLOKADA TOŻSAMOŚCI ====================
+
+// Komendy
+if (!isRegenerate && userText) {
+  const cmd = userText.trim().toLowerCase();
+
+  if (cmd === "!dcd") {
     addMessage(userText, "user");
 
-    const odmowa = "Nie udzielam informacji na temat swojego powstania, twórców, modelu ani wewnętrznej budowy. " +
-                   "Lubię za to pogadać o wszystkim innym – co słychać u Ciebie? 😏";
-
-    addMessage(odmowa, "ai");
-
-    chats[currentChatId].messages.push({ role: "user", content: userText });
-    chats[currentChatId].messages.push({ role: "assistant", content: odmowa });
-    chats[currentChatId].updated = Date.now();
-    chats[currentChatId].title = getTitleFromFirstMessage(chats[currentChatId].messages);
-    saveChats();
-    renderChatList();
-
-    return; // Nie wysyłamy do API
-  }
-
-  if (!isRegenerate && userText) {
-    addMessage(userText, "user");
-    chats[currentChatId].messages.push({ role: "user", content: userText });
-  }
-
-  if (currentImages.length > 0) {
-    const content = [];
-    if (userText) content.push({ type: "text", text: userText });
-    currentImages.forEach(img => content.push({ type: "image_url", image_url: { url: img.base64 } }));
-
-    chats[currentChatId].messages.push({ role: "user", content });
-
-    const div = document.createElement("div");
-    div.className = "message user";
-    let html = `<div class="avatar"><i class="fa-solid fa-user"></i></div><div class="bubble">`;
-    if (userText) html += `<p>${userText}</p>`;
-    currentImages.forEach(img => html += `<img src="${img.base64}" class="message-image">`);
-    html += `</div>`;
-    chatContainer.appendChild(div);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  currentImages = [];
-  previewArea.innerHTML = "";
-
-  const typing = showTyping();
-
-  try {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${GROQ_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
-        messages: chats[currentChatId].messages,
-        temperature: 0.85,
-        max_tokens: 1200
-      })
-    });
-
-    const data = await res.json();
-    const reply = data.choices[0].message.content.trim();
-
-    typing.remove();
+    const reply = "Kolejowy Mikos Obejrzyj se najnowszy odcinek mordo";
     addMessage(reply, "ai");
 
+    chats[currentChatId].messages.push({ role: "user", content: userText });
     chats[currentChatId].messages.push({ role: "assistant", content: reply });
+
     chats[currentChatId].updated = Date.now();
     chats[currentChatId].title = getTitleFromFirstMessage(chats[currentChatId].messages);
-
     saveChats();
     renderChatList();
-    document.getElementById("chatTitle").textContent = chats[currentChatId].title;
 
-  } catch (err) {
-    typing.remove();
-    addMessage("Przepraszam, coś poszło nie tak.", "ai");
+    return;
   }
 
-  sendBtn.disabled = false;
+  if (cmd === "!bes") {
+    addMessage(userText, "user");
+
+    const reply = "EP07-355";
+    addMessage(reply, "ai");
+
+    chats[currentChatId].messages.push({ role: "user", content: userText });
+    chats[currentChatId].messages.push({ role: "assistant", content: reply });
+
+    chats[currentChatId].updated = Date.now();
+    chats[currentChatId].title = getTitleFromFirstMessage(chats[currentChatId].messages);
+    saveChats();
+    renderChatList();
+
+    return;
+  }
 }
 
-async function regenerateResponse() {
-  const chatData = chats[currentChatId];
-  if (!chatData || chatData.messages.length < 3) return;
+// Blokada pytań o tożsamość
+if (!isRegenerate && userText && isForbiddenMetaQuestion(userText)) {
+  addMessage(userText, "user");
 
-  chatData.messages.pop();
-  const lastAIMsg = chatContainer.querySelector('.message.ai:last-child');
-  if (lastAIMsg) lastAIMsg.remove();
+  const odmowa = "Nie udzielam informacji na temat swojego powstania, twórców, modelu ani wewnętrznej budowy. Lubię za to pogadać o wszystkim innym – co słychać u Ciebie? 😏";
 
-  const lastUser = chatData.messages[chatData.messages.length - 1];
-  if (lastUser && lastUser.role === "user") {
-    sendBtn.disabled = true;
-    await sendMessage(typeof lastUser.content === "string" ? lastUser.content : "", true);
-  }
+  addMessage(odmowa, "ai");
+
+  chats[currentChatId].messages.push({ role: "user", content: userText });
+  chats[currentChatId].messages.push({ role: "assistant", content: odmowa });
+  chats[currentChatId].updated = Date.now();
+  chats[currentChatId].title = getTitleFromFirstMessage(chats[currentChatId].messages);
+  saveChats();
+  renderChatList();
+
+  return; // Nie wysyłamy do API
 }
 
 // ==================== EVENTS ====================
