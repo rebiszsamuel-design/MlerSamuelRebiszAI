@@ -5,184 +5,349 @@
 html,
 body {
     margin: 0;
+    padding: 0;
     min-height: 100%;
 }
 
 body {
     min-height: 100vh;
-    background: #050505;
-    color: white;
-    font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+
+    padding: 80px 20px 50px;
 
     overflow-x: hidden;
+
+    background: #050505;
+
+    color: #ffffff;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 }
+
+
+/* ========================================
+   BACKGROUND
+======================================== */
 
 .background {
     position: fixed;
     inset: 0;
-    z-index: -1;
+
     overflow: hidden;
-    background: #050505;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #151515 0%,
+            #080808 45%,
+            #050505 100%
+        );
 }
 
 .glow {
     position: absolute;
-    width: 550px;
-    height: 550px;
+
+    width: 450px;
+    height: 450px;
+
     border-radius: 50%;
-    filter: blur(110px);
-    opacity: 0.28;
-    pointer-events: none;
+
+    filter: blur(120px);
+
+    opacity: 0.18;
 }
 
 .glow-1 {
-    top: -250px;
-    left: -220px;
+    top: -180px;
+    left: -120px;
+
     background: #6b4cff;
 }
 
 .glow-2 {
-    right: -250px;
-    bottom: -250px;
+    right: -150px;
+    bottom: -180px;
+
     background: #00aaff;
 }
 
+
+/* ========================================
+   PROFILE CARD
+======================================== */
+
 .profile-card {
-    width: min(720px, calc(100% - 30px));
-    margin: 70px auto 40px;
+    position: relative;
 
-    background: #0e0e0e;
+    z-index: 1;
 
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    max-width: 720px;
+
+    overflow: visible;
 
     border-radius: 22px;
 
-    overflow: hidden;
+    background: #0e0e0e;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
 
     box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.45);
+        0 30px 80px
+        rgba(0,0,0,0.55);
 
-    position: relative;
+    backdrop-filter: blur(20px);
+
+    margin: 0 auto;
 }
+
+
+/* ========================================
+   BANNER
+======================================== */
 
 .profile-banner {
     width: 100%;
-    height: 190px;
+
+    height: 220px;
+
+    border-radius:
+        22px
+        22px
+        0
+        0;
 
     background:
         linear-gradient(
             135deg,
-            #171717,
-            #0b0b0b
+            #181818,
+            #080808
         );
 
     background-size: cover;
+
     background-position: center;
 
-    display: none;
-}
+    background-repeat: no-repeat;
 
-.profile-content {
     position: relative;
-    padding: 0 35px 35px;
-    text-align: center;
+
+    display: block;
 }
 
-.avatar-wrapper {
-    position: relative;
-    width: 136px;
-    height: 136px;
+.profile-banner::after {
+    content: "";
 
-    margin: -68px auto 18px;
+    position: absolute;
 
-    z-index: 2;
-}
+    inset: 0;
 
-.avatar {
-    width: 136px;
-    height: 136px;
-
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius:
+        22px
+        22px
+        0
+        0;
 
     background:
         linear-gradient(
-            145deg,
-            #202020,
-            #0b0b0b
+            to bottom,
+            transparent 35%,
+            rgba(5,5,5,0.70) 100%
         );
 
-    border: 5px solid #0e0e0e;
+    pointer-events: none;
+}
 
-    color: white;
 
-    font-size: 48px;
-    font-weight: 800;
+/* ========================================
+   CONTENT
+======================================== */
+
+.profile-content {
+    position: relative;
+
+    width: 100%;
+
+    padding:
+        0
+        35px
+        35px;
+
+    text-align: left;
+}
+
+
+/* ========================================
+   AVATAR
+======================================== */
+
+.avatar-wrapper {
+    position: relative;
+
+    width: 136px;
+    height: 136px;
+
+    margin:
+        -68px
+        0
+        18px;
+
+    padding: 6px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #0e0e0e;
+
+    border:
+        1px solid
+        rgba(255,255,255,0.12);
+
+    box-shadow:
+        0 15px 40px
+        rgba(0,0,0,0.45);
+
+    z-index: 5;
+}
+
+.avatar {
+    width: 124px;
+    height: 124px;
+
+    min-width: 124px;
+    min-height: 124px;
+
+    max-width: 124px;
+    max-height: 124px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
 
     overflow: hidden;
 
-    box-shadow:
-        0 12px 35px rgba(0, 0, 0, 0.35);
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #242424,
+            #101010
+        );
+
+    color: #ffffff;
+
+    font-size: 42px;
+
+    font-weight: 800;
+
+    line-height: 1;
+
+    flex-shrink: 0;
 }
 
 .avatar img {
+    display: block;
+
     width: 100%;
     height: 100%;
 
+    min-width: 100%;
+    min-height: 100%;
+
+    max-width: 100%;
+    max-height: 100%;
+
+    border-radius: 50%;
+
     object-fit: cover;
+
+    object-position: center;
 }
+
+
+/* ========================================
+   ONLINE
+======================================== */
 
 .online {
     position: absolute;
 
-    width: 19px;
-    height: 19px;
+    right: 5px;
+    bottom: 7px;
 
-    right: 7px;
-    bottom: 8px;
-
-    background: #38e879;
+    width: 22px;
+    height: 22px;
 
     border-radius: 50%;
 
-    border: 4px solid #0e0e0e;
+    background: #37e878;
+
+    border:
+        4px solid
+        #0e0e0e;
 
     box-shadow:
-        0 0 12px rgba(56, 232, 121, 0.65);
+        0 0 12px
+        rgba(55,232,120,0.65);
 }
 
+
+/* ========================================
+   NAME
+======================================== */
+
 .profile-name {
+    width: 100%;
+
     display: flex;
 
     align-items: center;
-    justify-content: center;
+
+    justify-content: flex-start;
 
     flex-wrap: wrap;
 
-    gap: 8px;
+    gap: 10px;
 }
 
 .profile-name h1 {
     margin: 0;
 
-    font-size: 32px;
-    line-height: 1.15;
-
     color: #ffffff;
 
-    transition:
-        color 0.2s,
-        text-shadow 0.2s;
+    font-size: 30px;
+
+    font-weight: 800;
+
+    line-height: 1.2;
+
+    word-break: break-word;
+
+    overflow-wrap: anywhere;
 }
+
+
+/* ========================================
+   BADGES
+======================================== */
 
 .badge,
 .og-badge {
@@ -191,84 +356,172 @@ body {
     align-items: center;
     justify-content: center;
 
-    min-height: 23px;
+    min-height: 27px;
 
-    padding: 4px 9px;
+    padding:
+        5px
+        10px;
 
-    border-radius: 7px;
+    border-radius: 8px;
 
     font-size: 10px;
-    font-weight: 900;
 
-    letter-spacing: 0.5px;
+    font-weight: 800;
+
+    letter-spacing: 0.6px;
+
+    flex-shrink: 0;
 }
 
 .free-badge {
-    background: #222225;
-    color: #aaa;
+    color: #bdbdbd;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    border-color:
+        rgba(255,255,255,0.1);
 }
 
 .pro-badge {
-    background: rgba(255, 205, 70, 0.13);
-    color: #ffd45a;
+    color: #fff0ae;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8a5a00,
+            #ffd76a,
+            #b87900
+        );
+
+    border:
+        1px solid
+        rgba(255,215,100,0.7);
 
     box-shadow:
-        0 0 14px rgba(255, 205, 70, 0.12);
+        0 0 18px
+        rgba(255,200,70,0.35);
 }
 
 .premium-badge {
-    background: rgba(174, 102, 255, 0.15);
-    color: #c394ff;
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #5d35ff,
+            #9b6cff,
+            #5d35ff
+        );
+
+    background-size: 200% 200%;
+
+    border:
+        1px solid
+        rgba(160,120,255,0.7);
 
     box-shadow:
-        0 0 16px rgba(174, 102, 255, 0.2);
+        0 0 18px
+        rgba(120,80,255,0.35);
+
+    animation:
+        premiumGlow 3s ease infinite;
+}
+
+@keyframes premiumGlow {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .og-badge {
-    background: rgba(255, 255, 255, 0.08);
-    color: #d7d7d7;
+    color: #e2e2e2;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.10);
 
     cursor: help;
 }
 
-.username {
-    margin: 8px 0 0;
 
-    color: #777;
+/* ========================================
+   USERNAME
+======================================== */
+
+.username {
+    margin:
+        8px
+        0
+        0;
+
+    color: #777777;
 
     font-size: 14px;
 }
 
+
+/* ========================================
+   BIO
+======================================== */
+
 .bio {
-    max-width: 560px;
+    width: 100%;
 
-    margin: 22px auto 0;
+    max-width: 620px;
 
-    color: #aaa;
+    margin:
+        20px
+        0
+        0;
 
-    line-height: 1.6;
+    color: #b7b7b7;
 
     font-size: 15px;
 
-    white-space: pre-wrap;
+    line-height: 1.6;
+
     word-break: break-word;
+
+    overflow-wrap: anywhere;
+
+    white-space: pre-wrap;
 }
+
+
+/* ========================================
+   LINKS
+======================================== */
 
 .profile-links {
     display: flex;
 
     flex-wrap: wrap;
 
-    justify-content: center;
+    align-items: center;
+
+    justify-content: flex-start;
 
     gap: 10px;
 
-    margin-top: 25px;
+    width: 100%;
+
+    margin-top: 22px;
 }
 
 .profile-link {
-    min-width: 130px;
-
     display: inline-flex;
 
     align-items: center;
@@ -276,88 +529,118 @@ body {
 
     gap: 8px;
 
-    padding: 11px 15px;
+    padding:
+        9px
+        14px;
 
     border-radius: 10px;
 
-    background: #171719;
+    background:
+        rgba(255,255,255,0.045);
 
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
 
-    color: #ddd;
+    color: #ffffff;
 
     text-decoration: none;
 
     font-size: 13px;
+
     font-weight: 600;
 
+    white-space: nowrap;
+
     transition:
-        transform 0.2s,
-        background 0.2s,
-        border-color 0.2s;
+        background 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .profile-link:hover {
-    transform: translateY(-2px);
+    background:
+        rgba(255,255,255,0.09);
 
-    background: #202024;
+    border-color:
+        rgba(255,255,255,0.16);
 
-    border-color: rgba(255, 255, 255, 0.15);
-
-    color: white;
+    transform:
+        translateY(-2px);
 }
 
 .profile-link-icon {
     width: 19px;
     height: 19px;
 
-    border-radius: 5px;
+    max-width: 19px;
+    max-height: 19px;
 
     object-fit: contain;
+
+    flex-shrink: 0;
+
+    border-radius: 4px;
 }
+
+
+/* ========================================
+   STATS
+======================================== */
 
 .profile-stats {
     display: flex;
 
-    justify-content: center;
+    align-items: center;
 
-    gap: 35px;
+    justify-content: flex-start;
+
+    gap: 40px;
+
+    width: 100%;
 
     margin-top: 28px;
 
-    padding-top: 22px;
+    padding-top: 20px;
 
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top:
+        1px solid
+        rgba(255,255,255,0.07);
 }
 
 .stat {
-    min-width: 100px;
+    min-width: 80px;
 
     display: flex;
 
     flex-direction: column;
 
     align-items: center;
+
+    justify-content: center;
 }
 
 .stat-number {
-    color: white;
+    color: #ffffff;
 
     font-size: 20px;
+
     font-weight: 800;
+
+    line-height: 1;
 }
 
 .stat-label {
-    color: #666;
+    margin-top: 6px;
+
+    color: #666666;
 
     font-size: 11px;
-
-    margin-top: 3px;
 }
 
 .like-button {
     width: 38px;
-    height: 32px;
+    height: 30px;
 
     padding: 0;
 
@@ -365,50 +648,56 @@ body {
 
     background: transparent;
 
-    color: #ff6b83;
+    color: #ff6682;
 
     font-size: 25px;
 
     cursor: pointer;
-
-    transition:
-        transform 0.15s,
-        color 0.15s;
 }
 
 .like-button:hover {
-    transform: scale(1.12);
+    transform: scale(1.08);
 }
 
 .like-button.liked {
-    color: #ff4f70;
+    color: #ff3f68;
 }
 
-.like-button:disabled {
-    cursor: default;
-    opacity: 0.7;
-}
+
+/* ========================================
+   MEMBER SINCE
+======================================== */
 
 .member-since {
     display: flex;
 
     align-items: center;
-    justify-content: center;
 
     gap: 7px;
 
-    margin-top: 28px;
+    margin-top: 26px;
 
-    color: #666;
+    padding-top: 20px;
 
-    font-size: 12px;
+    border-top:
+        1px solid
+        rgba(255,255,255,0.07);
+
+    color: #777777;
+
+    font-size: 13px;
 }
 
 .member-since strong {
-    color: #999;
+    color: #ffffff;
 
     font-weight: 600;
 }
+
+
+/* ========================================
+   MUSIC
+======================================== */
 
 .music-player {
     display: none;
@@ -417,49 +706,52 @@ body {
 
     gap: 12px;
 
-    margin-top: 25px;
+    width: 100%;
+
+    margin-top: 24px;
 
     padding: 14px;
 
-    text-align: left;
-
-    background: #111114;
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-
     border-radius: 13px;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.07);
 }
 
 .music-icon {
-    width: 38px;
-    height: 38px;
-
-    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
+    flex-shrink: 0;
+
     border-radius: 10px;
 
-    background: #19191d;
+    background:
+        rgba(118,87,255,0.13);
 
-    color: #a98aff;
+    color: #a991ff;
 
     font-size: 20px;
 }
 
 .music-info {
-    min-width: 0;
-
     display: flex;
 
     flex-direction: column;
+
+    min-width: 0;
 }
 
 .music-info strong {
-    color: white;
-
     font-size: 13px;
 }
 
@@ -468,18 +760,28 @@ body {
 
     font-size: 11px;
 
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 .music-player audio {
-    width: 230px;
+    width: 250px;
+
+    max-width: 100%;
+
     margin-left: auto;
 }
+
+
+/* ========================================
+   LOADING / ERROR
+======================================== */
 
 .loading {
     position: fixed;
 
     inset: 0;
+
+    z-index: 20;
 
     display: flex;
 
@@ -488,11 +790,9 @@ body {
 
     background: #050505;
 
-    color: #888;
+    color: #777;
 
     font-size: 14px;
-
-    z-index: 20;
 }
 
 .error-screen {
@@ -526,12 +826,35 @@ body {
     text-decoration: none;
 }
 
+
+/* ========================================
+   MOBILE
+======================================== */
+
 @media (max-width: 600px) {
 
-    .profile-card {
-        width: calc(100% - 20px);
+    body {
+        padding:
+            50px
+            10px
+            30px;
+    }
 
-        margin-top: 45px;
+    .profile-card {
+        border-radius: 18px;
+    }
+
+    .profile-banner,
+    .profile-banner::after {
+        border-radius:
+            18px
+            18px
+            0
+            0;
+    }
+
+    .profile-banner {
+        height: 180px;
     }
 
     .profile-content {
@@ -541,30 +864,36 @@ body {
             25px;
     }
 
-    .profile-name h1 {
-        font-size: 27px;
-    }
-
     .avatar-wrapper {
-        width: 112px;
-        height: 112px;
+        width: 116px;
+        height: 116px;
 
-        margin-top: -56px;
+        margin:
+            -58px
+            0
+            18px;
     }
 
     .avatar {
-        width: 112px;
-        height: 112px;
+        width: 106px;
+        height: 106px;
 
-        font-size: 40px;
+        min-width: 106px;
+        min-height: 106px;
+
+        max-width: 106px;
+        max-height: 106px;
+
+        font-size: 36px;
     }
 
-    .profile-banner {
-        height: 150px;
+    .profile-name h1 {
+        font-size: 25px;
     }
 
     .profile-links {
         flex-direction: column;
+        align-items: stretch;
     }
 
     .profile-link {
@@ -572,7 +901,12 @@ body {
     }
 
     .profile-stats {
-        gap: 20px;
+        justify-content: center;
+        gap: 28px;
+    }
+
+    .member-since {
+        justify-content: center;
     }
 
     .music-player {
