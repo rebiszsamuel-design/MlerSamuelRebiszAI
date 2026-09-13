@@ -7,7 +7,6 @@ const message =
 const API_URL =
     "https://mullar-api.sameksamuel17.workers.dev";
 
-
 loginForm.addEventListener(
     "submit",
     async (event) => {
@@ -28,7 +27,6 @@ loginForm.addEventListener(
         message.textContent =
             "Logowanie...";
 
-
         try {
 
             const response =
@@ -36,12 +34,10 @@ loginForm.addEventListener(
                     `${API_URL}/api/login`,
                     {
                         method: "POST",
-
                         headers: {
                             "Content-Type":
                                 "application/json"
                         },
-
                         body: JSON.stringify({
                             login,
                             password
@@ -49,10 +45,8 @@ loginForm.addEventListener(
                     }
                 );
 
-
             const data =
                 await response.json();
-
 
             if (!response.ok) {
 
@@ -63,7 +57,6 @@ loginForm.addEventListener(
                 return;
             }
 
-
             if (!data.token) {
 
                 message.textContent =
@@ -72,16 +65,13 @@ loginForm.addEventListener(
                 return;
             }
 
-
             localStorage.setItem(
                 "mullar_token",
                 data.token
             );
 
-
             message.textContent =
                 "Zalogowano!";
-
 
             setTimeout(() => {
 
@@ -89,7 +79,6 @@ loginForm.addEventListener(
                     "/account.html";
 
             }, 700);
-
 
         } catch (error) {
 
