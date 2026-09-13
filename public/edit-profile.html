@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Edit Profile — Mullar.Online</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main class="profile-card auth-card">
+
+        <section class="profile-content">
+
+            <div class="auth-logo">
+                M
+            </div>
+
+            <h1>
+                Edytuj profil
+            </h1>
+
+            <p class="auth-description">
+                Dostosuj swój profil Mullar.Online
+            </p>
+
+            <form id="editProfileForm">
+
+                <input
+                    id="bio"
+                    type="text"
+                    placeholder="Bio"
+                    maxlength="150"
+                >
+
+                <input
+                    id="discord"
+                    type="text"
+                    placeholder="Discord"
+                    maxlength="100"
+                >
+
+                <input
+                    id="github"
+                    type="url"
+                    placeholder="GitHub URL"
+                    maxlength="300"
+                >
+
+                <input
+                    id="instagram"
+                    type="url"
+                    placeholder="Instagram URL"
+                    maxlength="300"
+                >
+
+                <!-- AVATAR -->
+
+                <div class="upload-section">
+
+                    <label>
+                        Avatar
+                    </label>
+
+                    <input
+                        id="avatarFile"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                    >
+
+                    <button
+                        id="uploadAvatarButton"
+                        type="button"
+                    >
+                        Prześlij avatar
+                    </button>
+
+                    <p id="avatarMessage"></p>
+
+                </div>
+
+                <!-- BANNER -->
+
+                <div class="upload-section">
+
+                    <label>
+                        Banner
+                    </label>
+
+                    <input
+                        id="bannerFile"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                    >
+
+                    <button
+                        id="uploadBannerButton"
+                        type="button"
+                    >
+                        Prześlij banner
+                    </button>
+
+                    <p id="bannerMessage"></p>
+
+                </div>
+
+                <button type="submit">
+                    Zapisz zmiany
+                </button>
+
+            </form>
+
+            <p id="message"></p>
+
+            <div class="auth-footer">
+
+                <a href="/account.html">
+                    ← Wróć do konta
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/edit-profile.js"></script>
+
+</body>
+</html>

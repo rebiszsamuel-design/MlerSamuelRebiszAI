@@ -1,0 +1,4 @@
+node_modules/
+server/mullar.db
+public/uploads/
+.env

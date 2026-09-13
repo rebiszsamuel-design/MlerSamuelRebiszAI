@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login — Mullar.Online</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="profile-card auth-card">
+
+        <section class="profile-content">
+
+            <div class="auth-logo">
+                M
+            </div>
+
+            <h1>Witaj ponownie</h1>
+
+            <p class="auth-description">
+                Zaloguj się do Mullar.Online
+            </p>
+
+            <form id="loginForm">
+
+                <input
+                    id="login"
+                    type="text"
+                    placeholder="Username lub email"
+                    autocomplete="username"
+                    required
+                >
+
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Hasło"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button type="submit">
+                    Zaloguj się
+                </button>
+
+            </form>
+
+            <p id="message"></p>
+
+            <div class="auth-footer">
+                Nie masz konta?
+                <a href="register.html">Zarejestruj się</a>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="login.js"></script>
+
+</body>
+</html>
