@@ -1,3 +1,6 @@
+const API_URL =
+    "https://mullar-api.sameksamuel17.workers.dev";
+
 const welcome =
     document.getElementById("welcome");
 
@@ -19,14 +22,22 @@ const redeemMessage =
 const profileLink =
     document.getElementById("profileLink");
 
-const API_URL =
-    "https://mullar-api.sameksamuel17.workers.dev";
 
-const token =
-    localStorage.getItem("mullar_token");
+function getToken() {
+    return localStorage.getItem(
+        "mullar_token"
+    );
+}
 
+
+// ========================================
+// LOAD ACCOUNT
+// ========================================
 
 async function loadAccount() {
+
+    const token =
+        getToken();
 
     if (!token) {
 
@@ -36,12 +47,15 @@ async function loadAccount() {
         return;
     }
 
+
     try {
 
         const response =
             await fetch(
                 `${API_URL}/api/me`,
                 {
+                    method: "GET",
+
                     headers: {
                         "Authorization":
                             `Bearer ${token}`
@@ -49,11 +63,15 @@ async function loadAccount() {
                 }
             );
 
+
         const data =
             await response.json();
 
 
-        if (!response.ok || !data.loggedIn) {
+        if (
+            !response.ok ||
+            !data.loggedIn
+        ) {
 
             localStorage.removeItem(
                 "mullar_token"
@@ -75,8 +93,9 @@ async function loadAccount() {
 
 
         let planText =
-            (user.plan || "free")
-                .toUpperCase();
+            String(
+                user.plan || "free"
+            ).toUpperCase();
 
 
         if (
@@ -88,6 +107,7 @@ async function loadAccount() {
                 new Date(
                     user.plan_expires_at
                 );
+
 
             if (
                 !Number.isNaN(
@@ -103,7 +123,9 @@ async function loadAccount() {
         }
 
 
-        if (user.plan === "premium") {
+        if (
+            user.plan === "premium"
+        ) {
 
             planText =
                 "PREMIUM — NA ZAWSZE";
@@ -142,43 +164,166 @@ async function loadAccount() {
 
 
 // ========================================
+// REDEEM CODE
+// ========================================
+
+if (redeemForm) {
+
+    redeemForm.addEventListener(
+        "submit",
+        async (event) => {
+
+            event.preventDefault();
+
+
+            const token =
+                getToken();
+
+
+            if (!token) {
+
+                window.location.href =
+                    "/login.html";
+
+                return;
+            }
+
+
+            const code =
+                activationCode.value
+                    .trim()
+                    .toUpperCase();
+
+
+            if (!code) {
+
+                redeemMessage.textContent =
+                    "Wpisz kod aktywacyjny.";
+
+                return;
+            }
+
+
+            redeemMessage.textContent =
+                "Sprawdzanie kodu...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/api/redeem-code`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json",
+
+                                "Authorization":
+                                    `Bearer ${token}`
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    code
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    redeemMessage.textContent =
+                        data.message ||
+                        "Nie udało się aktywować kodu.";
+
+                    return;
+                }
+
+
+                redeemMessage.textContent =
+                    `✓ ${data.message}`;
+
+
+                activationCode.value =
+                    "";
+
+
+                await loadAccount();
+
+            } catch (error) {
+
+                console.error(
+                    "Redeem error:",
+                    error
+                );
+
+                redeemMessage.textContent =
+                    "Nie udało się połączyć z serwerem.";
+            }
+        }
+    );
+}
+
+
+// ========================================
 // LOGOUT
 // ========================================
 
-logoutButton.addEventListener(
-    "click",
-    async () => {
+if (logoutButton) {
 
-        try {
+    logoutButton.addEventListener(
+        "click",
+        async () => {
 
-            await fetch(
-                `${API_URL}/api/logout`,
-                {
-                    method: "POST",
+            const token =
+                getToken();
 
-                    headers: {
-                        "Authorization":
-                            `Bearer ${token}`
-                    }
+
+            try {
+
+                if (token) {
+
+                    await fetch(
+                        `${API_URL}/api/logout`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Authorization":
+                                    `Bearer ${token}`
+                            }
+                        }
+                    );
                 }
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+            }
+
+
+            localStorage.removeItem(
+                "mullar_token"
             );
 
-        } catch (error) {
 
-            console.error(
-                "Logout error:",
-                error
-            );
+            window.location.href =
+                "/login.html";
         }
-
-        localStorage.removeItem(
-            "mullar_token"
-        );
-
-        window.location.href =
-            "/login.html";
-    }
-);
+    );
+}
 
 
 // ========================================
