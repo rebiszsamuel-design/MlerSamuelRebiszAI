@@ -1,227 +1,240 @@
-const API_URL =
+const API =
     "https://mullar-api.sameksamuel17.workers.dev";
 
-const welcome =
-    document.getElementById("welcome");
+const token =
+    localStorage.getItem("mullar_token");
 
-const accountInfo =
-    document.getElementById("accountInfo");
-
-const logoutButton =
-    document.getElementById("logoutButton");
-
-const redeemForm =
-    document.getElementById("redeemForm");
-
-const activationCode =
-    document.getElementById("activationCode");
-
-const redeemMessage =
-    document.getElementById("redeemMessage");
-
-const profileLink =
-    document.getElementById("profileLink");
-
-
-function getToken() {
-    return localStorage.getItem(
-        "mullar_token"
-    );
+if (!token) {
+    window.location.href = "/login.html";
 }
 
+const $ = (id) =>
+    document.getElementById(id);
 
-// ========================================
-// LOAD ACCOUNT
-// ========================================
 
-async function loadAccount() {
+async function getAccount() {
 
-    const token =
-        getToken();
+    const response =
+        await fetch(
+            `${API}/api/me`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+            }
+        );
 
-    if (!token) {
+    let data;
+
+    try {
+        data =
+            await response.json();
+    } catch {
+        throw new Error(
+            "Nieprawidłowa odpowiedź serwera."
+        );
+    }
+
+    if (
+        !response.ok ||
+        !data.loggedIn
+    ) {
+
+        localStorage.removeItem(
+            "mullar_token"
+        );
 
         window.location.href =
             "/login.html";
 
-        return;
+        return null;
     }
 
+    return data.user;
+}
+
+
+async function loadAccount() {
 
     try {
 
-        const response =
-            await fetch(
-                `${API_URL}/api/me`,
-                {
-                    method: "GET",
+        const user =
+            await getAccount();
 
-                    headers: {
-                        "Authorization":
-                            `Bearer ${token}`
-                    }
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.loggedIn
-        ) {
-
-            localStorage.removeItem(
-                "mullar_token"
-            );
-
-            window.location.href =
-                "/login.html";
-
+        if (!user) {
             return;
         }
 
+        const username =
+            user.username;
 
-        const user =
-            data.user;
+        $("accountUsername").textContent =
+            username;
 
+        $("accountUsernameCard").textContent =
+            username;
 
-        welcome.textContent =
-            `Cześć, ${user.username}!`;
+        $("accountEmail").textContent =
+            user.email || "—";
 
-
-        let planText =
+        const plan =
             String(
                 user.plan || "free"
-            ).toUpperCase();
+            ).toLowerCase();
 
+        let planText =
+            plan.toUpperCase();
 
         if (
-            user.plan === "pro" &&
+            plan === "pro" &&
             user.plan_expires_at
         ) {
 
-            const expiration =
+            const date =
                 new Date(
                     user.plan_expires_at
                 );
 
-
-            if (
-                !Number.isNaN(
-                    expiration.getTime()
-                )
-            ) {
+            if (!Number.isNaN(date.getTime())) {
 
                 planText +=
-                    ` — ważny do ${expiration.toLocaleDateString(
+                    ` — do ${date.toLocaleDateString(
                         "pl-PL"
                     )}`;
             }
         }
 
-
-        if (
-            user.plan === "premium"
-        ) {
-
+        if (plan === "premium") {
             planText =
-                "PREMIUM — NA ZAWSZE";
+                "PREMIUM — BEZTERMINOWO";
         }
 
+        $("accountPlan").textContent =
+            planText;
 
-        accountInfo.innerHTML = `
-            Plan:
-            <strong>${planText}</strong>
-            <br>
-            Email:
-            ${user.email}
-        `;
+        const profileUrl =
+            `/profile.html?user=${encodeURIComponent(
+                username
+            )}`;
 
+        $("publicProfileLink").href =
+            profileUrl;
 
-        if (profileLink) {
+        $("publicProfileButton").href =
+            profileUrl;
 
-            profileLink.href =
-                `/profile.html?user=${encodeURIComponent(
-                    user.username
-                )}`;
-        }
-
+        $("profilePreview").src =
+            profileUrl;
 
     } catch (error) {
 
-        console.error(
-            "Account error:",
-            error
-        );
+        console.error(error);
 
-        accountInfo.textContent =
-            "Nie udało się pobrać danych konta.";
+        $("accountUsername").textContent =
+            "Błąd";
+
+        $("accountPlan").textContent =
+            error.message;
     }
 }
 
 
 // ========================================
-// REDEEM CODE
+// TABY
 // ========================================
 
-if (redeemForm) {
+document
+    .querySelectorAll(".tab-button")
+    .forEach(button => {
 
-    redeemForm.addEventListener(
-        "submit",
-        async (event) => {
+        button.addEventListener(
+            "click",
+            () => {
 
-            event.preventDefault();
+                document
+                    .querySelectorAll(
+                        ".tab-button"
+                    )
+                    .forEach(item => {
+                        item.classList.remove(
+                            "active"
+                        );
+                    });
 
+                document
+                    .querySelectorAll(
+                        ".panel"
+                    )
+                    .forEach(panel => {
+                        panel.classList.remove(
+                            "active"
+                        );
+                    });
 
-            const token =
-                getToken();
+                button.classList.add(
+                    "active"
+                );
 
+                const target =
+                    document.getElementById(
+                        `tab-${button.dataset.tab}`
+                    );
 
-            if (!token) {
-
-                window.location.href =
-                    "/login.html";
-
-                return;
+                if (target) {
+                    target.classList.add(
+                        "active"
+                    );
+                }
             }
+        );
 
+    });
+
+
+// ========================================
+// AKTYWACJA
+// ========================================
+
+$("redeemButton")
+    .addEventListener(
+        "click",
+        async () => {
 
             const code =
-                activationCode.value
+                $("activationCode")
+                    .value
                     .trim()
                     .toUpperCase();
 
+            const message =
+                $("redeemMessage");
 
             if (!code) {
 
-                redeemMessage.textContent =
-                    "Wpisz kod aktywacyjny.";
+                message.textContent =
+                    "Wpisz kod.";
 
                 return;
             }
 
-
-            redeemMessage.textContent =
-                "Sprawdzanie kodu...";
-
+            message.textContent =
+                "Aktywowanie...";
 
             try {
 
                 const response =
                     await fetch(
-                        `${API_URL}/api/redeem-code`,
+                        `${API}/api/redeem-code`,
                         {
                             method: "POST",
 
                             headers: {
-                                "Content-Type":
-                                    "application/json",
+                                Authorization:
+                                    `Bearer ${token}`,
 
-                                "Authorization":
-                                    `Bearer ${token}`
+                                "Content-Type":
+                                    "application/json"
                             },
 
                             body:
@@ -231,103 +244,74 @@ if (redeemForm) {
                         }
                     );
 
-
                 const data =
                     await response.json();
 
+                if (!response.ok) {
 
-                if (
-                    !response.ok ||
-                    !data.success
-                ) {
-
-                    redeemMessage.textContent =
+                    message.textContent =
                         data.message ||
                         "Nie udało się aktywować kodu.";
 
                     return;
                 }
 
+                message.textContent =
+                    data.message ||
+                    "Aktywowano.";
 
-                redeemMessage.textContent =
-                    `✓ ${data.message}`;
-
-
-                activationCode.value =
+                $("activationCode").value =
                     "";
-
 
                 await loadAccount();
 
             } catch (error) {
 
-                console.error(
-                    "Redeem error:",
-                    error
-                );
+                console.error(error);
 
-                redeemMessage.textContent =
+                message.textContent =
                     "Nie udało się połączyć z serwerem.";
             }
         }
     );
-}
 
 
 // ========================================
-// LOGOUT
+// WYLOGOWANIE
 // ========================================
 
-if (logoutButton) {
-
-    logoutButton.addEventListener(
+$("logoutButton")
+    .addEventListener(
         "click",
         async () => {
 
-            const token =
-                getToken();
-
-
             try {
 
-                if (token) {
+                await fetch(
+                    `${API}/api/logout`,
+                    {
+                        method: "POST",
 
-                    await fetch(
-                        `${API_URL}/api/logout`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Authorization":
-                                    `Bearer ${token}`
-                            }
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
                         }
-                    );
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Logout error:",
-                    error
+                    }
                 );
-            }
 
+            } catch {
+                // Nawet jeśli API nie odpowie,
+                // lokalna sesja zostanie usunięta.
+            }
 
             localStorage.removeItem(
                 "mullar_token"
             );
 
-
             window.location.href =
                 "/login.html";
         }
     );
-}
 
-
-// ========================================
-// START
-// ========================================
 
 loadAccount();

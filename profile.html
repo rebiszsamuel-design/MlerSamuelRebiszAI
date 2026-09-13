@@ -1,177 +1,201 @@
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Mullar.Online</title>
 
-    <link
-        rel="stylesheet"
-        href="/profile.css"
-    >
+    <link rel="stylesheet" href="/profile.css">
 </head>
 
 <body>
 
-    <div class="background">
+<div class="background">
 
-        <div class="glow glow-1"></div>
+    <div class="glow glow-1" id="glow1"></div>
+    <div class="glow glow-2" id="glow2"></div>
 
-        <div class="glow glow-2"></div>
+</div>
 
-    </div>
+<main class="profile-card" id="profileCard">
 
+    <div
+        class="profile-banner"
+        id="profileBanner"
+    ></div>
 
-    <main class="profile-card">
+    <section class="profile-content">
 
-        <!-- ================================
-             BANNER
-        ================================= -->
+        <div class="avatar-wrapper">
+
+            <div
+                class="avatar"
+                id="avatar"
+            >
+                ?
+            </div>
+
+            <span class="online"></span>
+
+        </div>
+
+        <div class="profile-name">
+
+            <h1 id="username">
+                Ładowanie...
+            </h1>
+
+            <span
+                id="plan"
+                class="badge free-badge"
+            >
+                FREE
+            </span>
+
+            <span
+                id="ogBadge"
+                class="og-badge"
+                title="Dołączył podczas tworzenia aplikacji!"
+            >
+                OG
+            </span>
+
+        </div>
+
+        <p
+            class="username"
+            id="handle"
+        >
+            @username
+        </p>
+
+        <p
+            class="bio"
+            id="bio"
+        ></p>
 
         <div
-            class="profile-banner"
-            id="profileBanner"
+            class="profile-links"
+            id="profileLinks"
         ></div>
 
+        <div
+            class="profile-stats"
+            id="profileStats"
+        >
 
-        <!-- ================================
-             PROFILE CONTENT
-        ================================= -->
-
-        <section class="profile-content">
-
-
-            <!-- ================================
-                 AVATAR
-            ================================= -->
-
-            <div class="avatar-wrapper">
-
-                <div
-                    class="avatar"
-                    id="avatar"
-                >
-                    M
-                </div>
-
-                <span
-                    class="online"
-                    title="Online"
-                ></span>
-
-            </div>
-
-
-            <!-- ================================
-                 NAME
-            ================================= -->
-
-            <div class="profile-name">
-
-                <h1 id="username">
-                    Mullar
-                </h1>
-
-                <span
-                    class="badge free-badge"
-                    id="plan"
-                >
-                    FREE
-                </span>
-
-            </div>
-
-
-            <!-- ================================
-                 USERNAME
-            ================================= -->
-
-            <p
-                class="username"
-                id="handle"
+            <div
+                class="stat"
+                id="viewsStat"
             >
-                @mullar
-            </p>
 
-
-            <!-- ================================
-                 BIO
-            ================================= -->
-
-            <p
-                class="bio"
-                id="bio"
-            >
-                Welcome to my Mullar.Online profile.
-            </p>
-
-
-            <!-- ================================
-                 SOCIAL LINKS
-            ================================= -->
-
-            <div class="profile-links">
-
-                <a
-                    class="profile-link"
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <strong
+                    id="viewsCount"
+                    class="stat-number"
                 >
-                    Discord
-                </a>
-
-                <a
-                    class="profile-link"
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    GitHub
-                </a>
-
-                <a
-                    class="profile-link"
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Instagram
-                </a>
-
-            </div>
-
-
-            <!-- ================================
-                 MEMBER SINCE
-            ================================= -->
-
-            <div class="member-since">
-
-                <span>
-                    Członek od
-                </span>
-
-                <strong id="memberSince">
-                    —
+                    0
                 </strong>
 
+                <span class="stat-label">
+                    wyświetleń
+                </span>
+
             </div>
 
+            <div
+                class="stat"
+                id="likesStat"
+            >
 
-        </section>
+                <button
+                    id="likeButton"
+                    class="like-button"
+                    type="button"
+                >
+                    ♡
+                </button>
 
-    </main>
+                <strong
+                    id="likesCount"
+                    class="stat-number"
+                >
+                    0
+                </strong>
 
+                <span class="stat-label">
+                    polubień
+                </span>
 
-    <script src="/profile.js"></script>
+            </div>
+
+        </div>
+
+        <div class="member-since">
+
+            Członek od
+
+            <strong id="memberSince">
+                —
+            </strong>
+
+        </div>
+
+        <div
+            id="musicPlayer"
+            class="music-player"
+        >
+
+            <div class="music-icon">
+                ♪
+            </div>
+
+            <div class="music-info">
+
+                <strong>
+                    Muzyka
+                </strong>
+
+                <span>
+                    Muzyka profilu
+                </span>
+
+            </div>
+
+            <audio
+                id="profileAudio"
+                controls
+            ></audio>
+
+        </div>
+
+    </section>
+
+</main>
+
+<div
+    id="loading"
+    class="loading"
+>
+    Ładowanie profilu...
+</div>
+
+<div
+    id="errorScreen"
+    class="error-screen"
+>
+    <h1>Nie znaleziono profilu</h1>
+
+    <p>
+        Sprawdź nazwę użytkownika.
+    </p>
+
+    <a href="/">
+        Wróć na Mullar.Online
+    </a>
+</div>
+
+<script src="/profile.js"></script>
 
 </body>
-
 </html>

@@ -1,4 +1,3 @@
-javascript
 const API = "https://mullar-api.sameksamuel17.workers.dev";
 
 const token = localStorage.getItem("mullar_token");
