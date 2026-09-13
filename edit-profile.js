@@ -1,449 +1,879 @@
-const API = "https://mullar-api.sameksamuel17.workers.dev";
+const API =
+    "https://mullar-api.sameksamuel17.workers.dev";
 
-const token = localStorage.getItem("mullar_token");
+const token =
+    localStorage.getItem(
+        "mullar_token"
+    );
 
 if (!token) {
-  window.location.href = "/login.html";
+
+    window.location.href =
+        "/login.html";
 }
 
-const $ = (id) => document.getElementById(id);
 
-let currentUser = null;
+const $ =
+    (id) => document.getElementById(id);
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
-function normalizeColor(value, fallback) {
-  if (!value) return fallback;
+const form =
+    $("profileForm");
 
-  const v = String(value).trim();
 
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    return v;
-  }
+let currentUser =
+    null;
 
-  return fallback;
-}
 
-function setStatus(text, type = "") {
-  const el = $("saveStatus");
-
-  if (!el) return;
-
-  el.textContent = text;
-  el.className = "save-status";
-
-  if (type) {
-    el.classList.add(type);
-  }
-}
+// ========================================
+// PLAN
+// ========================================
 
 function getPlan() {
-  return String(currentUser?.plan || "free").toLowerCase();
+
+    return String(
+        currentUser?.plan ||
+        "free"
+    ).toLowerCase();
 }
+
 
 function isPro() {
-  const plan = getPlan();
-  return plan === "pro" || plan === "premium";
+
+    return (
+        getPlan() === "pro" ||
+        getPlan() === "premium"
+    );
 }
+
 
 function isPremium() {
-  return getPlan() === "premium";
+
+    return (
+        getPlan() === "premium"
+    );
 }
 
-async function getMe() {
-  const response = await fetch(`${API}/api/me`, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`
+
+// ========================================
+// KOLORY
+// ========================================
+
+function validColor(value) {
+
+    return /^#[0-9a-fA-F]{6}$/.test(
+        value
+    );
+}
+
+
+function setupColor(
+    pickerId,
+    defaultValue
+) {
+
+    const picker =
+        $(pickerId);
+
+    if (!picker) {
+        return;
     }
-  });
 
-  let data = null;
-
-  try {
-    data = await response.json();
-  } catch {
-    throw new Error("API zwróciło nieprawidłową odpowiedź.");
-  }
-
-  if (!response.ok) {
-    throw new Error(data?.error || `Błąd API: ${response.status}`);
-  }
-
-  return data;
+    picker.value =
+        validColor(
+            picker.value
+        )
+            ? picker.value
+            : defaultValue;
 }
 
-function parseExtraLinks(raw) {
-  if (!raw) return [];
 
-  if (Array.isArray(raw)) {
-    return raw;
-  }
+// ========================================
+// DODATKOWE LINKI
+// ========================================
 
-  if (typeof raw === "string") {
+function parseLinks(value) {
+
+    if (Array.isArray(value)) {
+        return value;
+    }
+
     try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
 
-  return [];
+        const parsed =
+            JSON.parse(
+                value || "[]"
+            );
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch {
+
+        return [];
+    }
 }
+
 
 function renderLinks() {
-  const container = $("linksList");
 
-  if (!container) return;
+    const container =
+        $("linksList");
 
-  const max = isPremium() ? 5 : isPro() ? 2 : 0;
 
-  if (max === 0) {
-    container.innerHTML = `
-      <div class="link-item">
-        <strong>Linki dodatkowe są dostępne od planu PRO.</strong>
-        <div class="hint">Przejdź do zakładki PRO / Premium na koncie, aby aktywować plan.</div>
-      </div>
-    `;
-    return;
-  }
+    if (!container) {
+        return;
+    }
 
-  let links = parseExtraLinks(currentUser?.extra_links);
 
-  links = links.slice(0, max);
+    container.innerHTML =
+        "";
 
-  while (links.length < max) {
-    links.push({
-      title: "",
-      url: "",
-      icon: ""
-    });
-  }
 
-  container.innerHTML = links.map((link, index) => `
-    <div class="link-item">
-      <div class="link-head">
-        <span class="link-number">LINK ${index + 1}</span>
-        ${isPremium() ? '<span class="badge">PREMIUM</span>' : '<span class="badge">PRO</span>'}
-      </div>
+    let limit = 0;
 
-      <div class="fields two">
 
-        <div class="field">
-          <label for="link_title_${index}">NAZWA</label>
-          <input
-            id="link_title_${index}"
-            type="text"
-            value="${escapeHtml(link?.title || "")}"
-            placeholder="Moja strona"
-          >
-        </div>
+    if (isPremium()) {
 
-        <div class="field">
-          <label for="link_url_${index}">URL</label>
-          <input
-            id="link_url_${index}"
-            type="url"
-            value="${escapeHtml(link?.url || "")}"
-            placeholder="https://example.com"
-          >
-        </div>
+        limit = 5;
 
-        ${
-          isPremium()
-            ? `
-              <div class="field">
-                <label for="link_icon_${index}">IKONA URL</label>
-                <input
-                  id="link_icon_${index}"
-                  type="url"
-                  value="${escapeHtml(link?.icon || "")}"
-                  placeholder="https://..."
-                >
-              </div>
-            `
-            : ""
+    } else if (isPro()) {
+
+        limit = 2;
+    }
+
+
+    if (limit === 0) {
+
+        container.innerHTML = `
+            <div class="link-item">
+                <strong>
+                    Dodatkowe linki są dostępne od PRO.
+                </strong>
+
+                <div class="hint">
+                    Aktywuj PRO lub Premium w panelu konta.
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const links =
+        parseLinks(
+            currentUser.extra_links
+        );
+
+
+    for (
+        let i = 0;
+        i < limit;
+        i++
+    ) {
+
+        const link =
+            links[i] || {};
+
+
+        const box =
+            document.createElement(
+                "div"
+            );
+
+        box.className =
+            "link-item";
+
+
+        box.innerHTML = `
+            <div class="link-head">
+
+                <span class="link-number">
+                    LINK ${i + 1}
+                </span>
+
+                <span class="badge">
+                    ${
+                        isPremium()
+                            ? "PREMIUM"
+                            : "PRO"
+                    }
+                </span>
+
+            </div>
+
+            <div class="fields two">
+
+                <div class="field">
+
+                    <label>
+                        NAZWA
+                    </label>
+
+                    <input
+                        id="link_title_${i}"
+                        type="text"
+                        value=""
+                        placeholder="Moja strona"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        URL
+                    </label>
+
+                    <input
+                        id="link_url_${i}"
+                        type="url"
+                        value=""
+                        placeholder="https://..."
+                    >
+
+                </div>
+
+                ${
+                    isPremium()
+                        ? `
+                            <div class="field">
+
+                                <label>
+                                    IKONA URL
+                                </label>
+
+                                <input
+                                    id="link_icon_${i}"
+                                    type="url"
+                                    value=""
+                                    placeholder="https://..."
+                                >
+
+                            </div>
+                        `
+                        : ""
+                }
+
+            </div>
+        `;
+
+
+        container.appendChild(
+            box
+        );
+
+
+        $(
+            `link_title_${i}`
+        ).value =
+            link.title || "";
+
+
+        $(
+            `link_url_${i}`
+        ).value =
+            link.url || "";
+
+
+        if (
+            isPremium() &&
+            $(`link_icon_${i}`)
+        ) {
+
+            $(`link_icon_${i}`).value =
+                link.icon || "";
         }
-
-      </div>
-    </div>
-  `).join("");
-}
-
-function populate() {
-  const u = currentUser;
-
-  $("bio").value = u.bio || "";
-  $("discord").value = u.discord || "";
-  $("github").value = u.github || "";
-  $("instagram").value = u.instagram || "";
-
-  $("og_hidden").checked = Boolean(Number(u.og_hidden || 0));
-  $("views_enabled").checked = Number(u.views_enabled ?? 1) === 1;
-  $("likes_enabled").checked = Number(u.likes_enabled || 0) === 1;
-
-  $("profile_color").value =
-    normalizeColor(u.profile_color, "#0e0e0e");
-
-  $("glow1_color").value =
-    normalizeColor(u.glow1_color, "#6b4cff");
-
-  $("glow2_color").value =
-    normalizeColor(u.glow2_color, "#00aaff");
-
-  $("name_color").value =
-    normalizeColor(u.name_color, "#ffffff");
-
-  $("neon_name").checked = Number(u.neon_name || 0) === 1;
-
-  $("music_url").value = u.music_url || "";
-
-  const profileUrl =
-    `/profile.html?user=${encodeURIComponent(u.username)}`;
-
-  $("profileLink").href = profileUrl;
-
-  setupPlanRestrictions();
-
-  renderLinks();
-}
-
-function setupPlanRestrictions() {
-  const pro = isPro();
-  const premium = isPremium();
-
-  const likes = $("likes_enabled");
-  const neon = $("neon_name");
-  const music = $("music_url");
-
-  likes.disabled = !pro;
-
-  if (!pro) {
-    likes.checked = false;
-    $("likesHint").textContent = "Dostępne dla PRO i Premium.";
-  } else {
-    $("likesHint").textContent = "Odwiedzający mogą polubić Twój profil.";
-  }
-
-  neon.disabled = !premium;
-
-  if (!premium) {
-    neon.checked = false;
-  }
-
-  music.disabled = !premium;
-
-  if (!premium) {
-    music.value = "";
-  }
-}
-
-function collectLinks() {
-  const max = isPremium() ? 5 : isPro() ? 2 : 0;
-
-  const result = [];
-
-  for (let i = 0; i < max; i++) {
-    const title = $(`link_title_${i}`)?.value.trim() || "";
-    const url = $(`link_url_${i}`)?.value.trim() || "";
-    const icon = $(`link_icon_${i}`)?.value.trim() || "";
-
-    if (!title && !url && !icon) {
-      continue;
     }
-
-    if (!title || !url) {
-      throw new Error(`Uzupełnij nazwę i URL linku ${i + 1}.`);
-    }
-
-    result.push({
-      title,
-      url,
-      ...(isPremium() ? { icon } : {})
-    });
-  }
-
-  return result;
 }
 
-async function saveProfile(event) {
-  event.preventDefault();
 
-  const saveButton = $("saveBtn");
+// ========================================
+// WCZYTANIE DANYCH
+// ========================================
 
-  saveButton.disabled = true;
-  saveButton.textContent = "Zapisywanie...";
-  setStatus("Wysyłanie zmian...");
-
-  try {
-    const extraLinks = collectLinks();
-
-    const payload = {
-      bio: $("bio").value.trim(),
-      discord: $("discord").value.trim(),
-      github: $("github").value.trim(),
-      instagram: $("instagram").value.trim(),
-
-      og_hidden: $("og_hidden").checked ? 1 : 0,
-      views_enabled: $("views_enabled").checked ? 1 : 0,
-      likes_enabled:
-        isPro() && $("likes_enabled").checked ? 1 : 0,
-
-      profile_color: $("profile_color").value,
-      glow1_color: $("glow1_color").value,
-      glow2_color: $("glow2_color").value,
-      name_color: $("name_color").value,
-
-      neon_name:
-        isPremium() && $("neon_name").checked ? 1 : 0,
-
-      extra_links: extraLinks,
-
-      music_url:
-        isPremium()
-          ? $("music_url").value.trim()
-          : ""
-    };
-
-    console.log("Mullar profile payload:", payload);
-
-    const response = await fetch(`${API}/api/profile/update`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    let data = null;
+async function loadProfile() {
 
     try {
-      data = await response.json();
-    } catch {
-      throw new Error(
-        `Serwer zwrócił nieprawidłową odpowiedź HTTP ${response.status}.`
-      );
+
+        const response =
+            await fetch(
+                `${API}/api/me`,
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.loggedIn
+        ) {
+
+            localStorage.removeItem(
+                "mullar_token"
+            );
+
+            window.location.href =
+                "/login.html";
+
+            return;
+        }
+
+
+        currentUser =
+            data.user;
+
+
+        $("bio").value =
+            currentUser.bio || "";
+
+
+        $("discord").value =
+            currentUser.discord || "";
+
+
+        $("github").value =
+            currentUser.github || "";
+
+
+        $("instagram").value =
+            currentUser.instagram || "";
+
+
+        $("og_hidden").checked =
+            Number(
+                currentUser.og_hidden || 0
+            ) === 1;
+
+
+        $("views_enabled").checked =
+            Number(
+                currentUser.views_enabled ?? 1
+            ) === 1;
+
+
+        $("likes_enabled").checked =
+            Number(
+                currentUser.likes_enabled || 0
+            ) === 1;
+
+
+        $("profile_color").value =
+            currentUser.profile_color ||
+            "#0e0e0e";
+
+
+        $("glow1_color").value =
+            currentUser.glow1_color ||
+            "#6b4cff";
+
+
+        $("glow2_color").value =
+            currentUser.glow2_color ||
+            "#00aaff";
+
+
+        $("name_color").value =
+            currentUser.name_color ||
+            "#ffffff";
+
+
+        $("neon_name").checked =
+            Number(
+                currentUser.neon_name || 0
+            ) === 1;
+
+
+        $("music_url").value =
+            currentUser.music_url || "";
+
+
+        updateRestrictions();
+
+        renderLinks();
+
+
+    } catch (error) {
+
+        console.error(
+            "Profile error:",
+            error
+        );
+
+        setMessage(
+            error.message ||
+            "Nie udało się pobrać profilu.",
+            true
+        );
     }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        data?.message ||
-        `Nie udało się zapisać zmian. HTTP ${response.status}.`
-      );
-    }
-
-    setStatus("✓ Zapisano zmiany", "ok");
-
-    /*
-      Pobieramy dane ponownie, żeby edytor od razu
-      pracował na tym, co faktycznie zapisał backend.
-    */
-    currentUser = await getMe();
-
-    populate();
-
-  } catch (error) {
-    console.error("Mullar save error:", error);
-
-    setStatus(
-      `✕ ${error.message || "Nie udało się zapisać zmian."}`,
-      "error"
-    );
-  } finally {
-    saveButton.disabled = false;
-    saveButton.textContent = "Zapisz zmiany";
-  }
 }
 
-function setupNavigation() {
-  const buttons = document.querySelectorAll(".nav-btn");
-  const sections = document.querySelectorAll(".section");
 
-  buttons.forEach(button => {
-    button.addEventListener("click", () => {
+// ========================================
+// OGRANICZENIA PLANÓW
+// ========================================
 
-      const target = button.dataset.section;
+function updateRestrictions() {
 
-      buttons.forEach(item => {
-        item.classList.remove("active");
-      });
+    const pro =
+        isPro();
 
-      sections.forEach(section => {
-        section.classList.remove("active");
-      });
+    const premium =
+        isPremium();
 
-      button.classList.add("active");
 
-      const section = document.getElementById(
-        `section-${target}`
-      );
+    const likes =
+        $("likes_enabled");
 
-      if (section) {
-        section.classList.add("active");
-      }
+    const neon =
+        $("neon_name");
 
-      history.replaceState(
-        null,
-        "",
-        target === "appearance"
-          ? "#appearance"
-          : target === "links"
-            ? "#links"
-            : "#basic"
-      );
+    const music =
+        $("music_url");
+
+
+    if (likes) {
+
+        likes.disabled =
+            !pro;
+
+        if (!pro) {
+            likes.checked =
+                false;
+        }
+    }
+
+
+    if (neon) {
+
+        neon.disabled =
+            !premium;
+
+        if (!premium) {
+            neon.checked =
+                false;
+        }
+    }
+
+
+    if (music) {
+
+        music.disabled =
+            !premium;
+
+        if (!premium) {
+            music.value =
+                "";
+        }
+    }
+
+
+    [
+        "profile_color",
+        "glow1_color",
+        "glow2_color",
+        "name_color"
+    ].forEach(
+        id => {
+
+            const element =
+                $(id);
+
+            if (element) {
+
+                element.disabled =
+                    !pro;
+            }
+        }
+    );
+}
+
+
+// ========================================
+// LINKI
+// ========================================
+
+function collectLinks() {
+
+    let limit =
+        isPremium()
+            ? 5
+            : isPro()
+                ? 2
+                : 0;
+
+
+    const links = [];
+
+
+    for (
+        let i = 0;
+        i < limit;
+        i++
+    ) {
+
+        const titleInput =
+            $(`link_title_${i}`);
+
+        const urlInput =
+            $(`link_url_${i}`);
+
+        const iconInput =
+            $(`link_icon_${i}`);
+
+
+        if (!titleInput || !urlInput) {
+            continue;
+        }
+
+
+        const title =
+            titleInput.value.trim();
+
+        const url =
+            urlInput.value.trim();
+
+        const icon =
+            iconInput
+                ? iconInput.value.trim()
+                : "";
+
+
+        if (!title && !url) {
+            continue;
+        }
+
+
+        if (!title || !url) {
+
+            throw new Error(
+                `Uzupełnij nazwę i URL linku ${i + 1}.`
+            );
+        }
+
+
+        links.push({
+            title,
+            url,
+            icon
+        });
+    }
+
+
+    return links;
+}
+
+
+// ========================================
+// KOMUNIKAT
+// ========================================
+
+function setMessage(
+    text,
+    error = false
+) {
+
+    const element =
+        $("saveStatus");
+
+
+    if (!element) {
+        return;
+    }
+
+
+    element.textContent =
+        text;
+
+
+    element.className =
+        error
+            ? "save-status error"
+            : "save-status ok";
+}
+
+
+// ========================================
+// ZAPIS
+// ========================================
+
+form.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+
+        const saveButton =
+            $("saveBtn");
+
+
+        saveButton.disabled =
+            true;
+
+        saveButton.textContent =
+            "Zapisywanie...";
+
+
+        try {
+
+            const payload = {
+
+                bio:
+                    $("bio").value.trim(),
+
+                discord:
+                    $("discord").value.trim(),
+
+                github:
+                    $("github").value.trim(),
+
+                instagram:
+                    $("instagram").value.trim(),
+
+                og_hidden:
+                    $("og_hidden").checked
+                        ? 1
+                        : 0,
+
+                views_enabled:
+                    $("views_enabled").checked
+                        ? 1
+                        : 0,
+
+                likes_enabled:
+                    isPro() &&
+                    $("likes_enabled").checked
+                        ? 1
+                        : 0,
+
+                profile_color:
+                    isPro()
+                        ? $("profile_color").value
+                        : "#0e0e0e",
+
+                glow1_color:
+                    isPro()
+                        ? $("glow1_color").value
+                        : "#6b4cff",
+
+                glow2_color:
+                    isPro()
+                        ? $("glow2_color").value
+                        : "#00aaff",
+
+                name_color:
+                    isPro()
+                        ? $("name_color").value
+                        : "#ffffff",
+
+                neon_name:
+                    isPremium() &&
+                    $("neon_name").checked
+                        ? 1
+                        : 0,
+
+                extra_links:
+                    collectLinks(),
+
+                music_url:
+                    isPremium()
+                        ? $("music_url")
+                            .value
+                            .trim()
+                        : ""
+            };
+
+
+            const response =
+                await fetch(
+                    `${API}/api/profile/update`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    data.error ||
+                    `Błąd HTTP ${response.status}`
+                );
+            }
+
+
+            setMessage(
+                "✓ Profil został zapisany!"
+            );
+
+
+            currentUser =
+                await (
+                    await fetch(
+                        `${API}/api/me`,
+                        {
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            }
+                        }
+                    )
+                ).json();
+
+
+            if (
+                currentUser.user
+            ) {
+
+                currentUser =
+                    currentUser.user;
+            }
+
+
+            updateRestrictions();
+
+            renderLinks();
+
+
+        } catch (error) {
+
+            console.error(
+                "Save error:",
+                error
+            );
+
+            setMessage(
+                error.message ||
+                "Nie udało się zapisać profilu.",
+                true
+            );
+
+        } finally {
+
+            saveButton.disabled =
+                false;
+
+            saveButton.textContent =
+                "Zapisz zmiany";
+        }
+    }
+);
+
+
+// ========================================
+// NAWIGACJA EDYTORA
+// ========================================
+
+document
+    .querySelectorAll(".nav-btn")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const target =
+                    button.dataset.section;
+
+
+                document
+                    .querySelectorAll(
+                        ".nav-btn"
+                    )
+                    .forEach(item => {
+                        item.classList.remove(
+                            "active"
+                        );
+                    });
+
+
+                document
+                    .querySelectorAll(
+                        ".section"
+                    )
+                    .forEach(section => {
+                        section.classList.remove(
+                            "active"
+                        );
+                    });
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                const section =
+                    $(
+                        `section-${target}`
+                    );
+
+
+                if (section) {
+
+                    section.classList.add(
+                        "active"
+                    );
+                }
+
+            }
+        );
     });
-  });
 
-  const hash = window.location.hash;
 
-  if (hash === "#appearance") {
-    document
-      .querySelector('[data-section="appearance"]')
-      ?.click();
-  }
+// ========================================
+// START
+// ========================================
 
-  if (hash === "#links") {
-    document
-      .querySelector('[data-section="links"]')
-      ?.click();
-  }
-}
+setupColor(
+    "profile_color",
+    "#0e0e0e"
+);
 
-async function init() {
-  setupNavigation();
+setupColor(
+    "glow1_color",
+    "#6b4cff"
+);
 
-  try {
-    currentUser = await getMe();
+setupColor(
+    "glow2_color",
+    "#00aaff"
+);
 
-    populate();
+setupColor(
+    "name_color",
+    "#ffffff"
+);
 
-    $("profileForm").addEventListener(
-      "submit",
-      saveProfile
-    );
 
-    setStatus("Gotowe do edycji");
-
-  } catch (error) {
-    console.error("Mullar init error:", error);
-
-    setStatus(
-      `✕ ${error.message || "Nie udało się pobrać konta."}`,
-      "error"
-    );
-
-    $("saveBtn").disabled = true;
-  }
-}
-
-init();
+loadProfile();
