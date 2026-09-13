@@ -1,201 +1,245 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Mullar.Online</title>
 
-    <link rel="stylesheet" href="/profile.css">
+    <link
+        rel="stylesheet"
+        href="/profile.css"
+    >
 </head>
 
 <body>
 
-<div class="background">
-
-    <div class="glow glow-1" id="glow1"></div>
-    <div class="glow glow-2" id="glow2"></div>
-
-</div>
-
-<main class="profile-card" id="profileCard">
-
-    <div
-        class="profile-banner"
-        id="profileBanner"
-    ></div>
-
-    <section class="profile-content">
-
-        <div class="avatar-wrapper">
-
-            <div
-                class="avatar"
-                id="avatar"
-            >
-                ?
-            </div>
-
-            <span class="online"></span>
-
-        </div>
-
-        <div class="profile-name">
-
-            <h1 id="username">
-                Ładowanie...
-            </h1>
-
-            <span
-                id="plan"
-                class="badge free-badge"
-            >
-                FREE
-            </span>
-
-            <span
-                id="ogBadge"
-                class="og-badge"
-                title="Dołączył podczas tworzenia aplikacji!"
-            >
-                OG
-            </span>
-
-        </div>
-
-        <p
-            class="username"
-            id="handle"
-        >
-            @username
-        </p>
-
-        <p
-            class="bio"
-            id="bio"
-        ></p>
+    <div class="background">
 
         <div
-            class="profile-links"
-            id="profileLinks"
+            class="glow glow-1"
+            id="glow1"
         ></div>
 
         <div
-            class="profile-stats"
-            id="profileStats"
-        >
+            class="glow glow-2"
+            id="glow2"
+        ></div>
 
-            <div
-                class="stat"
-                id="viewsStat"
-            >
+    </div>
 
-                <strong
-                    id="viewsCount"
-                    class="stat-number"
-                >
-                    0
-                </strong>
 
-                <span class="stat-label">
-                    wyświetleń
-                </span>
-
-            </div>
-
-            <div
-                class="stat"
-                id="likesStat"
-            >
-
-                <button
-                    id="likeButton"
-                    class="like-button"
-                    type="button"
-                >
-                    ♡
-                </button>
-
-                <strong
-                    id="likesCount"
-                    class="stat-number"
-                >
-                    0
-                </strong>
-
-                <span class="stat-label">
-                    polubień
-                </span>
-
-            </div>
-
-        </div>
-
-        <div class="member-since">
-
-            Członek od
-
-            <strong id="memberSince">
-                —
-            </strong>
-
-        </div>
+    <main
+        class="profile-card"
+        id="profileCard"
+    >
 
         <div
-            id="musicPlayer"
-            class="music-player"
-        >
+            class="profile-banner"
+            id="profileBanner"
+        ></div>
 
-            <div class="music-icon">
-                ♪
+
+        <section class="profile-content">
+
+            <div class="avatar-wrapper">
+
+                <div
+                    class="avatar"
+                    id="avatar"
+                >
+                    M
+                </div>
+
+                <span
+                    class="online"
+                    title="Online"
+                ></span>
+
             </div>
 
-            <div class="music-info">
 
-                <strong>
-                    Muzyka
-                </strong>
+            <div class="profile-name">
 
-                <span>
-                    Muzyka profilu
+                <h1 id="username">
+                    Mullar
+                </h1>
+
+                <span
+                    class="badge free-badge"
+                    id="plan"
+                >
+                    FREE
+                </span>
+
+                <span
+                    class="og-badge"
+                    id="ogBadge"
+                    title="Dołączył podczas tworzenia aplikacji!"
+                >
+                    OG
                 </span>
 
             </div>
 
-            <audio
-                id="profileAudio"
-                controls
-            ></audio>
 
-        </div>
+            <p
+                class="username"
+                id="handle"
+            >
+                @mullar
+            </p>
 
-    </section>
 
-</main>
+            <p
+                class="bio"
+                id="bio"
+            >
+                Welcome to my Mullar.Online profile.
+            </p>
 
-<div
-    id="loading"
-    class="loading"
->
-    Ładowanie profilu...
-</div>
 
-<div
-    id="errorScreen"
-    class="error-screen"
->
-    <h1>Nie znaleziono profilu</h1>
+            <div
+                class="profile-links"
+                id="profileLinks"
+            ></div>
 
-    <p>
-        Sprawdź nazwę użytkownika.
-    </p>
 
-    <a href="/">
-        Wróć na Mullar.Online
-    </a>
-</div>
+            <div
+                class="profile-stats"
+                id="profileStats"
+            >
 
-<script src="/profile.js"></script>
+                <div
+                    class="stat"
+                    id="viewsStat"
+                >
+
+                    <strong
+                        class="stat-number"
+                        id="viewsCount"
+                    >
+                        0
+                    </strong>
+
+                    <span class="stat-label">
+                        wyświetleń
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="stat"
+                    id="likesStat"
+                >
+
+                    <button
+                        type="button"
+                        id="likeButton"
+                        class="like-button"
+                        aria-label="Polub profil"
+                    >
+                        ♡
+                    </button>
+
+                    <strong
+                        class="stat-number"
+                        id="likesCount"
+                    >
+                        0
+                    </strong>
+
+                    <span class="stat-label">
+                        polubień
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="member-since">
+
+                <span>
+                    Członek od
+                </span>
+
+                <strong id="memberSince">
+                    —
+                </strong>
+
+            </div>
+
+
+            <div
+                class="music-player"
+                id="musicPlayer"
+            >
+
+                <div class="music-icon">
+                    ♪
+                </div>
+
+                <div class="music-info">
+
+                    <strong>
+                        Muzyka
+                    </strong>
+
+                    <span>
+                        Profilowa muzyka
+                    </span>
+
+                </div>
+
+                <audio
+                    id="profileAudio"
+                    controls
+                    preload="none"
+                ></audio>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <div
+        class="loading"
+        id="loading"
+    >
+        Ładowanie profilu...
+    </div>
+
+
+    <div
+        class="error-screen"
+        id="errorScreen"
+    >
+
+        <h1>
+            Nie znaleziono profilu
+        </h1>
+
+        <p>
+            Sprawdź nazwę użytkownika.
+        </p>
+
+        <a href="/">
+            Wróć na Mullar.Online
+        </a>
+
+    </div>
+
+
+    <script src="/profile.js"></script>
 
 </body>
 </html>

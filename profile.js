@@ -9,74 +9,126 @@ const params =
 const username =
     params.get("user");
 
+
 const loading =
-    document.getElementById("loading");
+    document.getElementById(
+        "loading"
+    );
 
 const errorScreen =
-    document.getElementById("errorScreen");
+    document.getElementById(
+        "errorScreen"
+    );
 
 const profileCard =
-    document.getElementById("profileCard");
+    document.getElementById(
+        "profileCard"
+    );
 
 const usernameElement =
-    document.getElementById("username");
+    document.getElementById(
+        "username"
+    );
 
 const handleElement =
-    document.getElementById("handle");
+    document.getElementById(
+        "handle"
+    );
 
 const planElement =
-    document.getElementById("plan");
+    document.getElementById(
+        "plan"
+    );
 
 const ogBadge =
-    document.getElementById("ogBadge");
+    document.getElementById(
+        "ogBadge"
+    );
 
 const avatarElement =
-    document.getElementById("avatar");
+    document.getElementById(
+        "avatar"
+    );
 
 const bioElement =
-    document.getElementById("bio");
+    document.getElementById(
+        "bio"
+    );
 
 const profileLinks =
-    document.getElementById("profileLinks");
+    document.getElementById(
+        "profileLinks"
+    );
 
 const profileBanner =
-    document.getElementById("profileBanner");
+    document.getElementById(
+        "profileBanner"
+    );
 
 const glow1 =
-    document.getElementById("glow1");
+    document.getElementById(
+        "glow1"
+    );
 
 const glow2 =
-    document.getElementById("glow2");
+    document.getElementById(
+        "glow2"
+    );
+
+const profileStats =
+    document.getElementById(
+        "profileStats"
+    );
 
 const viewsStat =
-    document.getElementById("viewsStat");
+    document.getElementById(
+        "viewsStat"
+    );
 
 const viewsCount =
-    document.getElementById("viewsCount");
+    document.getElementById(
+        "viewsCount"
+    );
 
 const likesStat =
-    document.getElementById("likesStat");
+    document.getElementById(
+        "likesStat"
+    );
 
 const likesCount =
-    document.getElementById("likesCount");
+    document.getElementById(
+        "likesCount"
+    );
 
 const likeButton =
-    document.getElementById("likeButton");
+    document.getElementById(
+        "likeButton"
+    );
 
 const memberSince =
-    document.getElementById("memberSince");
+    document.getElementById(
+        "memberSince"
+    );
 
 const musicPlayer =
-    document.getElementById("musicPlayer");
+    document.getElementById(
+        "musicPlayer"
+    );
 
 const profileAudio =
-    document.getElementById("profileAudio");
+    document.getElementById(
+        "profileAudio"
+    );
 
 
 let profile = null;
 
 
 function safeUrl(value) {
+
+    if (!value) {
+        return null;
+    }
 
     try {
 
@@ -99,6 +151,43 @@ function safeUrl(value) {
 }
 
 
+function safeColor(
+    value,
+    fallback
+) {
+
+    if (
+        typeof value === "string" &&
+        /^#[0-9a-fA-F]{6}$/.test(
+            value.trim()
+        )
+    ) {
+        return value.trim();
+    }
+
+    return fallback;
+}
+
+
+function planName(plan) {
+
+    const value =
+        String(
+            plan || "free"
+        ).toLowerCase();
+
+    if (value === "premium") {
+        return "PREMIUM";
+    }
+
+    if (value === "pro") {
+        return "PRO";
+    }
+
+    return "FREE";
+}
+
+
 function planClass(plan) {
 
     const value =
@@ -118,49 +207,113 @@ function planClass(plan) {
 }
 
 
-function loadPlan() {
+function parseLinks(value) {
 
-    const plan =
-        String(
-            profile.plan || "free"
-        ).toLowerCase();
+    if (Array.isArray(value)) {
+        return value;
+    }
 
-    planElement.textContent =
-        plan.toUpperCase();
+    if (!value) {
+        return [];
+    }
 
-    planElement.className =
-        `badge ${planClass(plan)}`;
+    try {
 
+        const parsed =
+            JSON.parse(value);
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch {
+
+        return [];
+    }
 }
 
 
+function setText(
+    element,
+    value
+) {
+
+    if (element) {
+        element.textContent =
+            value;
+    }
+}
+
+
+/* ========================================
+   PLAN
+======================================== */
+
+function renderPlan() {
+
+    if (!planElement) {
+        return;
+    }
+
+    planElement.textContent =
+        planName(profile.plan);
+
+    planElement.className =
+        `badge ${planClass(
+            profile.plan
+        )}`;
+}
+
+
+/* ========================================
+   AVATAR
+======================================== */
+
 function renderAvatar() {
 
-    const url =
-        safeUrl(profile.avatar);
+    if (!avatarElement) {
+        return;
+    }
 
     avatarElement.innerHTML =
         "";
 
-    if (url) {
+    const avatarUrl =
+        safeUrl(profile.avatar);
+
+
+    if (avatarUrl) {
 
         const image =
-            document.createElement("img");
+            document.createElement(
+                "img"
+            );
 
         image.src =
-            url;
+            avatarUrl;
 
         image.alt =
-            profile.username;
+            `${profile.username} avatar`;
+
+        image.loading =
+            "lazy";
+
 
         image.onerror =
             () => {
 
                 avatarElement.innerHTML =
-                    profile.username
+                    "";
+
+                avatarElement.textContent =
+                    String(
+                        profile.username ||
+                        "M"
+                    )
                         .charAt(0)
                         .toUpperCase();
             };
+
 
         avatarElement.appendChild(
             image
@@ -169,147 +322,157 @@ function renderAvatar() {
         return;
     }
 
+
     avatarElement.textContent =
-        profile.username
+        String(
+            profile.username ||
+            "M"
+        )
             .charAt(0)
             .toUpperCase();
 }
 
 
+/* ========================================
+   LINKS
+======================================== */
+
+function addLink(
+    title,
+    url,
+    icon = ""
+) {
+
+    const safe =
+        safeUrl(url);
+
+    if (!safe) {
+        return;
+    }
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.className =
+        "profile-link";
+
+    link.href =
+        safe;
+
+    link.target =
+        "_blank";
+
+    link.rel =
+        "noopener noreferrer";
+
+
+    if (icon) {
+
+        const safeIcon =
+            safeUrl(icon);
+
+        if (safeIcon) {
+
+            const image =
+                document.createElement(
+                    "img"
+                );
+
+            image.className =
+                "profile-link-icon";
+
+            image.src =
+                safeIcon;
+
+            image.alt =
+                "";
+
+            image.loading =
+                "lazy";
+
+
+            image.onerror =
+                () => {
+                    image.remove();
+                };
+
+
+            link.appendChild(
+                image
+            );
+        }
+    }
+
+
+    const text =
+        document.createElement(
+            "span"
+        );
+
+    text.textContent =
+        title;
+
+
+    link.appendChild(
+        text
+    );
+
+    profileLinks.appendChild(
+        link
+    );
+}
+
+
 function renderLinks() {
+
+    if (!profileLinks) {
+        return;
+    }
 
     profileLinks.innerHTML =
         "";
 
-    const social = [
-        ["Discord", profile.discord],
-        ["GitHub", profile.github],
-        ["Instagram", profile.instagram]
-    ];
 
-    social.forEach(
-        ([name, value]) => {
+    addLink(
+        "Discord",
+        profile.discord
+    );
 
-            const url =
-                safeUrl(value);
+    addLink(
+        "GitHub",
+        profile.github
+    );
 
-            if (!url) {
-                return;
-            }
-
-            const link =
-                document.createElement("a");
-
-            link.className =
-                "profile-link";
-
-            link.href =
-                url;
-
-            link.target =
-                "_blank";
-
-            link.rel =
-                "noopener noreferrer";
-
-            link.textContent =
-                name;
-
-            profileLinks.appendChild(
-                link
-            );
-        }
+    addLink(
+        "Instagram",
+        profile.instagram
     );
 
 
-    let extra = [];
-
-    try {
-
-        extra =
-            Array.isArray(
-                profile.extra_links
-            )
-                ? profile.extra_links
-                : JSON.parse(
-                    profile.extra_links || "[]"
-                );
-
-    } catch {
-
-        extra = [];
-    }
-
-
-    if (!Array.isArray(extra)) {
-        extra = [];
-    }
+    const extra =
+        parseLinks(
+            profile.extra_links
+        );
 
 
     extra.forEach(
         item => {
 
-            const url =
-                safeUrl(item.url);
-
-            if (!url) {
+            if (
+                !item ||
+                typeof item !==
+                    "object"
+            ) {
                 return;
             }
 
-            const link =
-                document.createElement("a");
-
-            link.className =
-                "profile-link";
-
-            link.href =
-                url;
-
-            link.target =
-                "_blank";
-
-            link.rel =
-                "noopener noreferrer";
-
-
-            if (item.icon) {
-
-                const iconUrl =
-                    safeUrl(item.icon);
-
-                if (iconUrl) {
-
-                    const img =
-                        document.createElement("img");
-
-                    img.className =
-                        "profile-link-icon";
-
-                    img.src =
-                        iconUrl;
-
-                    img.alt =
-                        "";
-
-                    link.appendChild(
-                        img
-                    );
-                }
-            }
-
-
-            const text =
-                document.createElement("span");
-
-            text.textContent =
-                item.title || "Link";
-
-            link.appendChild(
-                text
-            );
-
-            profileLinks.appendChild(
-                link
+            addLink(
+                item.title ||
+                    "Link",
+                item.url,
+                item.icon || ""
             );
         }
     );
@@ -322,62 +485,115 @@ function renderLinks() {
 }
 
 
+/* ========================================
+   COLORS
+======================================== */
+
 function renderColors() {
 
-    const background =
-        profile.profile_color ||
-        "#0e0e0e";
+    const cardColor =
+        safeColor(
+            profile.profile_color,
+            "#0e0e0e"
+        );
 
     const firstGlow =
-        profile.glow1_color ||
-        "#6b4cff";
+        safeColor(
+            profile.glow1_color,
+            "#6b4cff"
+        );
 
     const secondGlow =
-        profile.glow2_color ||
-        "#00aaff";
+        safeColor(
+            profile.glow2_color,
+            "#00aaff"
+        );
 
     const nameColor =
-        profile.name_color ||
-        "#ffffff";
+        safeColor(
+            profile.name_color,
+            "#ffffff"
+        );
 
 
-    profileCard.style.background =
-        background;
-
-    glow1.style.background =
-        firstGlow;
-
-    glow2.style.background =
-        secondGlow;
-
-    usernameElement.style.color =
-        nameColor;
+    if (profileCard) {
+        profileCard.style.background =
+            cardColor;
+    }
 
 
-    if (
-        Number(profile.neon_name || 0) === 1
-    ) {
+    if (glow1) {
+        glow1.style.background =
+            firstGlow;
+    }
 
-        usernameElement.style.textShadow =
-            `
-            0 0 7px ${nameColor},
-            0 0 18px ${nameColor},
-            0 0 30px ${nameColor}
-            `;
 
-    } else {
+    if (glow2) {
+        glow2.style.background =
+            secondGlow;
+    }
 
-        usernameElement.style.textShadow =
-            "none";
+
+    if (usernameElement) {
+
+        usernameElement.style.color =
+            nameColor;
+
+
+        const neon =
+            Number(
+                profile.neon_name || 0
+            ) === 1 &&
+            String(
+                profile.plan ||
+                "free"
+            ).toLowerCase() ===
+                "premium";
+
+
+        if (neon) {
+
+            usernameElement.style.textShadow =
+                `
+                0 0 6px ${nameColor},
+                0 0 16px ${nameColor},
+                0 0 30px ${nameColor}
+                `;
+
+        } else {
+
+            usernameElement.style.textShadow =
+                "none";
+        }
     }
 }
 
 
+/* ========================================
+   OG
+======================================== */
+
 function renderOG() {
 
+    if (!ogBadge) {
+        return;
+    }
+
+
+    const eligible =
+        Boolean(
+            profile.og_eligible
+        );
+
+    const hidden =
+        Number(
+            profile.og_hidden || 0
+        ) === 1;
+
+
     if (
-        profile.og_visible === false ||
-        Number(profile.og_hidden || 0) === 1
+        !eligible ||
+        hidden
     ) {
 
         ogBadge.style.display =
@@ -386,53 +602,66 @@ function renderOG() {
         return;
     }
 
-    if (
-        profile.og_eligible === false
-    ) {
-
-        ogBadge.style.display =
-            "none";
-
-        return;
-    }
 
     ogBadge.style.display =
         "inline-flex";
 }
 
 
+/* ========================================
+   STATS
+======================================== */
+
 function renderStats() {
+
+    if (!profileStats) {
+        return;
+    }
+
 
     const viewsEnabled =
         Number(
-            profile.views_enabled ?? 1
+            profile.views_enabled ??
+            1
         ) === 1;
-
-    viewsStat.style.display =
-        viewsEnabled
-            ? "flex"
-            : "none";
-
-    viewsCount.textContent =
-        Number(
-            profile.views_count || 0
-        ).toLocaleString("pl-PL");
 
 
     const likesEnabled =
         Number(
-            profile.likes_enabled || 0
+            profile.likes_enabled ||
+            0
         ) === 1;
 
+
     const paid =
-        profile.plan === "pro" ||
-        profile.plan === "premium";
+        String(
+            profile.plan ||
+            "free"
+        ).toLowerCase() === "pro" ||
+        String(
+            profile.plan ||
+            "free"
+        ).toLowerCase() === "premium";
 
 
-    likesStat.style.display =
-        likesEnabled && paid
-            ? "flex"
-            : "none";
+    if (viewsEnabled) {
+
+        viewsStat.style.display =
+            "flex";
+
+        viewsCount.textContent =
+            Number(
+                profile.views_count ||
+                0
+            ).toLocaleString(
+                "pl-PL"
+            );
+
+    } else {
+
+        viewsStat.style.display =
+            "none";
+    }
 
 
     if (
@@ -440,127 +669,222 @@ function renderStats() {
         paid
     ) {
 
+        likesStat.style.display =
+            "flex";
+
         likesCount.textContent =
             Number(
-                profile.likes_count || 0
-            ).toLocaleString("pl-PL");
+                profile.likes_count ||
+                0
+            ).toLocaleString(
+                "pl-PL"
+            );
 
 
         const key =
             `mullar_like_${profile.username}`;
 
-        const liked =
+
+        const alreadyLiked =
             localStorage.getItem(
                 key
             ) === "1";
 
 
         likeButton.disabled =
-            liked;
-
-        likeButton.textContent =
-            liked
-                ? "♥"
-                : "♡";
+            alreadyLiked;
 
         likeButton.classList.toggle(
             "liked",
-            liked
+            alreadyLiked
         );
+
+        likeButton.textContent =
+            alreadyLiked
+                ? "♥"
+                : "♡";
+
+    } else {
+
+        likesStat.style.display =
+            "none";
     }
+
+
+    const somethingVisible =
+        viewsStat.style.display !==
+            "none" ||
+        likesStat.style.display !==
+            "none";
+
+
+    profileStats.style.display =
+        somethingVisible
+            ? "flex"
+            : "none";
 }
 
 
+/* ========================================
+   MUSIC
+======================================== */
+
 function renderMusic() {
 
-    const url =
-        safeUrl(profile.music_url);
+    const musicUrl =
+        safeUrl(
+            profile.music_url
+        );
+
+
+    const premium =
+        String(
+            profile.plan ||
+            "free"
+        ).toLowerCase() ===
+            "premium";
+
 
     if (
-        !url ||
-        String(profile.plan).toLowerCase() !==
-            "premium"
+        !musicUrl ||
+        !premium
     ) {
 
         musicPlayer.style.display =
             "none";
 
+        profileAudio.removeAttribute(
+            "src"
+        );
+
         return;
     }
 
+
     profileAudio.src =
-        url;
+        musicUrl;
+
 
     musicPlayer.style.display =
         "flex";
 }
 
 
+/* ========================================
+   BANNER
+======================================== */
+
+function renderBanner() {
+
+    const bannerUrl =
+        safeUrl(
+            profile.banner
+        );
+
+
+    if (!bannerUrl) {
+
+        profileBanner.style.display =
+            "none";
+
+        return;
+    }
+
+
+    profileBanner.style.display =
+        "block";
+
+
+    profileBanner.style.backgroundImage =
+        `url("${bannerUrl}")`;
+}
+
+
+/* ========================================
+   DATA
+======================================== */
+
 function renderProfile() {
 
-    document.title =
-        `${profile.username} — Mullar.Online`;
+    setText(
+        usernameElement,
+        profile.username ||
+            "Mullar"
+    );
 
-    usernameElement.textContent =
-        profile.username;
+    setText(
+        handleElement,
+        `@${profile.username || "mullar"}`
+    );
 
-    handleElement.textContent =
-        `@${profile.username}`;
-
-    bioElement.textContent =
+    setText(
+        bioElement,
         profile.bio ||
-        "Brak opisu.";
+            "Welcome to my Mullar.Online profile."
+    );
 
-    memberSince.textContent =
-        profile.created_at
-            ? new Date(
+
+    if (profile.created_at) {
+
+        const date =
+            new Date(
                 profile.created_at
-              ).toLocaleDateString(
-                "pl-PL"
-              )
-            : "—";
-
-
-    loadPlan();
-    renderAvatar();
-    renderLinks();
-    renderColors();
-    renderOG();
-    renderStats();
-    renderMusic();
-
-
-    if (profile.banner) {
-
-        const banner =
-            safeUrl(
-                profile.banner
             );
 
-        if (banner) {
 
-            profileBanner.style.display =
-                "block";
+        if (
+            !Number.isNaN(
+                date.getTime()
+            )
+        ) {
 
-            profileBanner.style.backgroundImage =
-                `url("${banner}")`;
+            setText(
+                memberSince,
+                date.toLocaleDateString(
+                    "pl-PL",
+                    {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric"
+                    }
+                )
+            );
         }
     }
 
 
-    profileCard.style.display =
-        "block";
+    renderPlan();
 
-    loading.style.display =
-        "none";
+    renderAvatar();
+
+    renderLinks();
+
+    renderColors();
+
+    renderOG();
+
+    renderStats();
+
+    renderMusic();
+
+    renderBanner();
+
+
+    document.title =
+        `${profile.username} — Mullar.Online`;
 }
 
+
+/* ========================================
+   VIEW
+======================================== */
 
 async function registerView() {
 
     if (
         Number(
-            profile.views_enabled ?? 1
+            profile.views_enabled ??
+            1
         ) !== 1
     ) {
         return;
@@ -570,8 +894,10 @@ async function registerView() {
     const key =
         `mullar_view_${profile.username}`;
 
+
     if (
-        localStorage.getItem(key) === "1"
+        localStorage.getItem(key) ===
+        "1"
     ) {
         return;
     }
@@ -604,6 +930,9 @@ async function registerView() {
             "number"
         ) {
 
+            profile.views_count =
+                data.views_count;
+
             viewsCount.textContent =
                 data.views_count.toLocaleString(
                     "pl-PL"
@@ -618,10 +947,17 @@ async function registerView() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "View error:",
+            error
+        );
     }
 }
 
+
+/* ========================================
+   LIKE
+======================================== */
 
 async function likeProfile() {
 
@@ -632,7 +968,8 @@ async function likeProfile() {
 
     if (
         Number(
-            profile.likes_enabled || 0
+            profile.likes_enabled ||
+            0
         ) !== 1
     ) {
         return;
@@ -641,7 +978,8 @@ async function likeProfile() {
 
     const plan =
         String(
-            profile.plan || "free"
+            profile.plan ||
+            "free"
         ).toLowerCase();
 
 
@@ -658,7 +996,8 @@ async function likeProfile() {
 
 
     if (
-        localStorage.getItem(key) === "1"
+        localStorage.getItem(key) ===
+        "1"
     ) {
         return;
     }
@@ -721,7 +1060,10 @@ async function likeProfile() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Like error:",
+            error
+        );
 
         likeButton.disabled =
             false;
@@ -729,7 +1071,34 @@ async function likeProfile() {
 }
 
 
-async function start() {
+/* ========================================
+   ERROR
+======================================== */
+
+function showError() {
+
+    if (loading) {
+        loading.style.display =
+            "none";
+    }
+
+    if (profileCard) {
+        profileCard.style.display =
+            "none";
+    }
+
+    if (errorScreen) {
+        errorScreen.style.display =
+            "flex";
+    }
+}
+
+
+/* ========================================
+   LOAD
+======================================== */
+
+async function loadProfile() {
 
     if (!username) {
 
@@ -778,34 +1147,35 @@ async function start() {
 
         renderProfile();
 
+
+        loading.style.display =
+            "none";
+
+        profileCard.style.display =
+            "block";
+
+
         await registerView();
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Profile load error:",
+            error
+        );
 
         showError();
     }
 }
 
 
-function showError() {
+if (likeButton) {
 
-    loading.style.display =
-        "none";
-
-    profileCard.style.display =
-        "none";
-
-    errorScreen.style.display =
-        "flex";
+    likeButton.addEventListener(
+        "click",
+        likeProfile
+    );
 }
-
-
-likeButton.addEventListener(
-    "click",
-    likeProfile
-);
 
 
 profileCard.style.display =
@@ -814,4 +1184,5 @@ profileCard.style.display =
 errorScreen.style.display =
     "none";
 
-start();
+
+loadProfile();
