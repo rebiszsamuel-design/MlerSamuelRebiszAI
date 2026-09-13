@@ -17,24 +17,37 @@ function getCorsOrigin(request) {
 
 function corsHeaders(request) {
   return {
-    "Access-Control-Allow-Origin": getCorsOrigin(request),
-    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Origin":
+      getCorsOrigin(request),
+
+    "Access-Control-Allow-Credentials":
+      "true",
+
     "Access-Control-Allow-Headers":
-      "Content-Type, Authorization",
+      "Content-Type, Authorization, X-Admin-Key",
+
     "Access-Control-Allow-Methods":
       "GET, POST, OPTIONS",
-    "Vary": "Origin"
+
+    "Vary":
+      "Origin"
   };
 }
 
-function json(request, data, status = 200) {
+function json(
+  request,
+  data,
+  status = 200
+) {
   return new Response(
     JSON.stringify(data),
     {
       status,
+
       headers: {
         "Content-Type":
           "application/json; charset=UTF-8",
+
         ...corsHeaders(request)
       }
     }
@@ -49,17 +62,25 @@ function getToken(request) {
     return null;
   }
 
-  if (!authorization.startsWith("Bearer ")) {
+  if (
+    !authorization.startsWith(
+      "Bearer "
+    )
+  ) {
     return null;
   }
 
-  return authorization
-    .slice(7)
-    .trim();
+  const token =
+    authorization
+      .slice(7)
+      .trim();
+
+  return token || null;
 }
 
 async function hashPassword(password) {
-  const encoder = new TextEncoder();
+  const encoder =
+    new TextEncoder();
 
   const data =
     encoder.encode(password);
@@ -98,6 +119,24 @@ function createSessionToken() {
     .join("");
 }
 
+function publicUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    plan: user.plan,
+    plan_expires_at:
+      user.plan_expires_at,
+    bio: user.bio,
+    discord: user.discord,
+    github: user.github,
+    instagram: user.instagram,
+    avatar: user.avatar,
+    banner: user.banner,
+    created_at: user.created_at
+  };
+}
+
 async function getUserFromRequest(
   request,
   env
@@ -109,7 +148,7 @@ async function getUserFromRequest(
     return null;
   }
 
-  const result =
+  const user =
     await env.mullar_db
       .prepare(`
         SELECT
@@ -134,36 +173,69 @@ async function getUserFromRequest(
       .bind(token)
       .first();
 
-  return result || null;
+  return user || null;
 }
 
-function publicUser(user) {
-  return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    plan: user.plan,
-    plan_expires_at:
-      user.plan_expires_at,
-    bio: user.bio,
-    discord: user.discord,
-    github: user.github,
-    instagram: user.instagram,
-    avatar: user.avatar,
-    banner: user.banner,
-    created_at: user.created_at
-  };
+
+// ========================================
+// ACTIVATION CODE GENERATOR
+// ========================================
+
+function generateRandomCodePart() {
+  const alphabet =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  const bytes =
+    new Uint8Array(4);
+
+  crypto.getRandomValues(bytes);
+
+  let result = "";
+
+  for (const byte of bytes) {
+    result +=
+      alphabet[
+        byte % alphabet.length
+      ];
+  }
+
+  return result;
 }
+
+function generateActivationCode(plan) {
+  const prefix =
+    plan === "pro"
+      ? "MLR-PRO"
+      : "MLR-PREM";
+
+  return [
+    prefix,
+    generateRandomCodePart(),
+    generateRandomCodePart(),
+    generateRandomCodePart()
+  ].join("-");
+}
+
+
+// ========================================
+// WORKER
+// ========================================
 
 export default {
 
-  async fetch(request, env) {
+  async fetch(
+    request,
+    env
+  ) {
 
     // ========================================
-    // CORS PREFLIGHT
+    // CORS
     // ========================================
 
-    if (request.method === "OPTIONS") {
+    if (
+      request.method ===
+      "OPTIONS"
+    ) {
       return new Response(
         null,
         {
@@ -201,10 +273,13 @@ export default {
           request,
           {
             ok: true,
+
             message:
               "Mullar API działa!",
+
             database:
               "D1 działa!",
+
             users:
               result.count
           }
@@ -231,7 +306,8 @@ export default {
 
     if (
       request.method === "POST" &&
-      url.pathname === "/api/register"
+      url.pathname ===
+        "/api/register"
     ) {
 
       try {
@@ -248,8 +324,8 @@ export default {
           String(
             body.email || ""
           )
-          .trim()
-          .toLowerCase();
+            .trim()
+            .toLowerCase();
 
         const password =
           String(
@@ -310,7 +386,9 @@ export default {
         }
 
 
-        if (password.length < 6) {
+        if (
+          password.length < 6
+        ) {
 
           return json(
             request,
@@ -388,8 +466,10 @@ export default {
           request,
           {
             ok: true,
+
             message:
               "Konto zostało utworzone.",
+
             userId:
               result.meta.last_row_id
           },
@@ -402,8 +482,10 @@ export default {
           request,
           {
             ok: false,
+
             error:
               "Nie udało się utworzyć konta.",
+
             details:
               error.message
           },
@@ -419,7 +501,8 @@ export default {
 
     if (
       request.method === "POST" &&
-      url.pathname === "/api/login"
+      url.pathname ===
+        "/api/login"
     ) {
 
       try {
@@ -531,9 +614,12 @@ export default {
           request,
           {
             ok: true,
+
             message:
               "Zalogowano!",
+
             token,
+
             user:
               publicUser(user)
           }
@@ -545,8 +631,10 @@ export default {
           request,
           {
             ok: false,
+
             error:
               "Nie udało się zalogować.",
+
             details:
               error.message
           },
@@ -562,7 +650,8 @@ export default {
 
     if (
       request.method === "GET" &&
-      url.pathname === "/api/me"
+      url.pathname ===
+        "/api/me"
     ) {
 
       try {
@@ -592,6 +681,7 @@ export default {
           {
             ok: true,
             loggedIn: true,
+
             user:
               publicUser(user)
           }
@@ -627,13 +717,11 @@ export default {
 
         const profileUsername =
           decodeURIComponent(
-            url.pathname
-              .replace(
-                "/api/profile/",
-                ""
-              )
-          )
-          .trim();
+            url.pathname.replace(
+              "/api/profile/",
+              ""
+            )
+          ).trim();
 
 
         if (!profileUsername) {
@@ -642,6 +730,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Brak użytkownika."
             },
@@ -681,6 +770,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nie znaleziono profilu."
             },
@@ -703,8 +793,10 @@ export default {
           request,
           {
             success: false,
+
             message:
               "Nie udało się pobrać profilu.",
+
             details:
               error.message
           },
@@ -720,7 +812,8 @@ export default {
 
     if (
       request.method === "POST" &&
-      url.pathname === "/api/profile/update"
+      url.pathname ===
+        "/api/profile/update"
     ) {
 
       try {
@@ -738,6 +831,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Musisz być zalogowany."
             },
@@ -771,6 +865,21 @@ export default {
           ).trim();
 
 
+        if (bio.length > 500) {
+
+          return json(
+            request,
+            {
+              success: false,
+
+              message:
+                "Opis może mieć maksymalnie 500 znaków."
+            },
+            400
+          );
+        }
+
+
         await env.mullar_db
           .prepare(`
             UPDATE users
@@ -795,6 +904,7 @@ export default {
           request,
           {
             success: true,
+
             message:
               "Profil został zapisany."
           }
@@ -806,8 +916,10 @@ export default {
           request,
           {
             success: false,
+
             message:
               "Nie udało się zapisać profilu.",
+
             details:
               error.message
           },
@@ -818,12 +930,13 @@ export default {
 
 
     // ========================================
-    // REDEEM ACTIVATION CODE
+    // REDEEM CODE
     // ========================================
 
     if (
       request.method === "POST" &&
-      url.pathname === "/api/redeem-code"
+      url.pathname ===
+        "/api/redeem-code"
     ) {
 
       try {
@@ -841,6 +954,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Musisz być zalogowany."
             },
@@ -856,8 +970,8 @@ export default {
           String(
             body.code || ""
           )
-          .trim()
-          .toUpperCase();
+            .trim()
+            .toUpperCase();
 
 
         if (!code) {
@@ -866,6 +980,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Wpisz kod aktywacyjny."
             },
@@ -892,6 +1007,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nieprawidłowy kod aktywacyjny."
             },
@@ -910,6 +1026,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Ten kod został już wykorzystany."
             },
@@ -918,11 +1035,12 @@ export default {
         }
 
 
-        const activationPlan =
+        const plan =
           String(
-            activation.plan || "free"
+            activation.plan || ""
           )
-          .toLowerCase();
+            .trim()
+            .toLowerCase();
 
 
         let userPlan =
@@ -931,15 +1049,16 @@ export default {
         let expiresAt =
           null;
 
+
         if (
-          activationPlan === "premium"
+          plan === "premium"
         ) {
 
           userPlan =
             "premium";
 
         } else if (
-          activationPlan === "pro"
+          plan === "pro"
         ) {
 
           userPlan =
@@ -961,6 +1080,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Ten kod ma nieprawidłowy plan."
             },
@@ -969,42 +1089,92 @@ export default {
         }
 
 
-        await env.mullar_db
-          .prepare(`
-            UPDATE users
-            SET
-              plan = ?,
-              plan_expires_at = ?
-            WHERE id = ?
-          `)
-          .bind(
-            userPlan,
-            expiresAt,
-            user.id
-          )
-          .run();
+        // Najpierw próbujemy oznaczyć kod jako wykorzystany.
+        // Dzięki WHERE redeemed = 0 dwa równoczesne żądania
+        // nie powinny wykorzystać tego samego kodu.
+
+        const redeemResult =
+          await env.mullar_db
+            .prepare(`
+              UPDATE activation_codes
+              SET
+                redeemed = 1,
+                redeemed_by = ?,
+                redeemed_at = CURRENT_TIMESTAMP
+              WHERE id = ?
+                AND redeemed = 0
+            `)
+            .bind(
+              user.id,
+              activation.id
+            )
+            .run();
 
 
-        await env.mullar_db
-          .prepare(`
-            UPDATE activation_codes
-            SET
-              redeemed = 1,
-              redeemed_by = ?,
-              redeemed_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-          `)
-          .bind(
-            user.id,
-            activation.id
-          )
-          .run();
+        if (
+          Number(
+            redeemResult.meta.changes
+          ) !== 1
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+
+              message:
+                "Ten kod został już wykorzystany."
+            },
+            409
+          );
+        }
+
+
+        try {
+
+          await env.mullar_db
+            .prepare(`
+              UPDATE users
+              SET
+                plan = ?,
+                plan_expires_at = ?
+              WHERE id = ?
+            `)
+            .bind(
+              userPlan,
+              expiresAt,
+              user.id
+            )
+            .run();
+
+        } catch (userUpdateError) {
+
+          // Awaryjnie cofamy oznaczenie kodu,
+          // jeżeli aktualizacja konta się nie uda.
+
+          await env.mullar_db
+            .prepare(`
+              UPDATE activation_codes
+              SET
+                redeemed = 0,
+                redeemed_by = NULL,
+                redeemed_at = NULL
+              WHERE id = ?
+            `)
+            .bind(
+              activation.id
+            )
+            .run();
+
+          throw userUpdateError;
+        }
 
 
         return json(
           request,
           {
             success: true,
+
             message:
               userPlan === "premium"
                 ? "Premium zostało aktywowane."
@@ -1018,8 +1188,10 @@ export default {
           request,
           {
             success: false,
+
             message:
               "Wystąpił błąd podczas aktywacji kodu.",
+
             details:
               error.message
           },
@@ -1030,44 +1202,164 @@ export default {
 
 
     // ========================================
-    // AVATAR UPLOAD
+    // ADMIN - GENERATE CODE
     // ========================================
 
     if (
       request.method === "POST" &&
-      url.pathname === "/api/profile/avatar"
+      url.pathname ===
+        "/api/admin/generate-code"
     ) {
 
-      return json(
-        request,
-        {
-          success: false,
-          message:
-            "Upload avatara nie jest jeszcze skonfigurowany."
-        },
-        503
-      );
-    }
+      try {
+
+        const adminKey =
+          request.headers.get(
+            "X-Admin-Key"
+          );
 
 
-    // ========================================
-    // BANNER UPLOAD
-    // ========================================
+        if (
+          !adminKey ||
+          adminKey !== env.ADMIN_KEY
+        ) {
 
-    if (
-      request.method === "POST" &&
-      url.pathname === "/api/profile/banner"
-    ) {
+          return json(
+            request,
+            {
+              success: false,
 
-      return json(
-        request,
-        {
-          success: false,
-          message:
-            "Upload bannera nie jest jeszcze skonfigurowany."
-        },
-        503
-      );
+              message:
+                "Brak dostępu."
+            },
+            403
+          );
+        }
+
+
+        const body =
+          await request.json();
+
+        const plan =
+          String(
+            body.plan || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (
+          plan !== "pro" &&
+          plan !== "premium"
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+
+              message:
+                "Nieprawidłowy plan."
+            },
+            400
+          );
+        }
+
+
+        let code = null;
+
+
+        for (
+          let attempt = 0;
+          attempt < 10;
+          attempt++
+        ) {
+
+          const candidate =
+            generateActivationCode(
+              plan
+            );
+
+
+          const existing =
+            await env.mullar_db
+              .prepare(`
+                SELECT id
+                FROM activation_codes
+                WHERE code = ?
+                LIMIT 1
+              `)
+              .bind(candidate)
+              .first();
+
+
+          if (!existing) {
+
+            code =
+              candidate;
+
+            break;
+          }
+        }
+
+
+        if (!code) {
+
+          return json(
+            request,
+            {
+              success: false,
+
+              message:
+                "Nie udało się wygenerować unikalnego kodu."
+            },
+            500
+          );
+        }
+
+
+        await env.mullar_db
+          .prepare(`
+            INSERT INTO activation_codes (
+              code,
+              plan
+            )
+            VALUES (?, ?)
+          `)
+          .bind(
+            code,
+            plan
+          )
+          .run();
+
+
+        return json(
+          request,
+          {
+            success: true,
+
+            code,
+
+            plan
+          }
+        );
+
+      } catch (error) {
+
+        return json(
+          request,
+          {
+            success: false,
+
+            message:
+              "Nie udało się wygenerować kodu.",
+
+            details:
+              error.message
+          },
+          500
+        );
+      }
     }
 
 
@@ -1077,7 +1369,8 @@ export default {
 
     if (
       request.method === "POST" &&
-      url.pathname === "/api/logout"
+      url.pathname ===
+        "/api/logout"
     ) {
 
       try {
@@ -1102,6 +1395,7 @@ export default {
           request,
           {
             ok: true,
+
             message:
               "Wylogowano."
           }
@@ -1113,12 +1407,40 @@ export default {
           request,
           {
             ok: false,
+
             error:
               error.message
           },
           500
         );
       }
+    }
+
+
+    // ========================================
+    // UPLOAD PLACEHOLDERS
+    // ========================================
+
+    if (
+      request.method === "POST" &&
+      (
+        url.pathname ===
+          "/api/profile/avatar" ||
+        url.pathname ===
+          "/api/profile/banner"
+      )
+    ) {
+
+      return json(
+        request,
+        {
+          success: false,
+
+          message:
+            "Upload plików nie jest jeszcze skonfigurowany."
+        },
+        503
+      );
     }
 
 
@@ -1130,6 +1452,7 @@ export default {
       request,
       {
         ok: false,
+
         error:
           "Nie znaleziono endpointu."
       },
