@@ -80,7 +80,6 @@ loginForm.addEventListener(
 
 
             message.textContent =
-                data.message ||
                 "Zalogowano!";
 
 
