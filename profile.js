@@ -23,35 +23,58 @@ const bannerElement =
     document.getElementById("profileBanner");
 
 
+const API_URL =
+    "https://mullar-api.sameksamuel17.workers.dev";
+
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
 const username =
-    window.location.pathname
-        .split("/")
-        .filter(Boolean)
-        .pop();
+    params.get("user");
 
-
-// ========================================
-// LOAD PROFILE
-// ========================================
 
 async function loadProfile() {
+
+    if (!username) {
+
+        usernameElement.textContent =
+            "Brak profilu";
+
+        handleElement.textContent =
+            "";
+
+        planElement.textContent =
+            "ERROR";
+
+        bioElement.textContent =
+            "Nie podano użytkownika.";
+
+        return;
+    }
+
 
     try {
 
         const response =
             await fetch(
-                `/api/profile/${encodeURIComponent(username)}`
+                `${API_URL}/api/profile/${encodeURIComponent(
+                    username
+                )}`
             );
+
 
         const data =
             await response.json();
 
 
-        // ========================================
-        // PROFILE NOT FOUND
-        // ========================================
-
-        if (!data.success) {
+        if (
+            !response.ok ||
+            !data.success
+        ) {
 
             usernameElement.textContent =
                 "Profile not found";
@@ -71,9 +94,6 @@ async function loadProfile() {
             memberSinceElement.textContent =
                 "—";
 
-            document.title =
-                "Profile not found — Mullar.Online";
-
             return;
         }
 
@@ -82,10 +102,6 @@ async function loadProfile() {
             data.profile;
 
 
-        // ========================================
-        // USERNAME
-        // ========================================
-
         usernameElement.textContent =
             profile.username;
 
@@ -93,13 +109,11 @@ async function loadProfile() {
             `@${profile.username}`;
 
 
-        // ========================================
-        // PLAN
-        // ========================================
-
         const plan =
-            (profile.plan || "free")
-                .toLowerCase();
+            (
+                profile.plan ||
+                "free"
+            ).toLowerCase();
 
 
         planElement.classList.remove(
@@ -138,11 +152,8 @@ async function loadProfile() {
         }
 
 
-        // ========================================
-        // AVATAR
-        // ========================================
-
-        avatarElement.innerHTML = "";
+        avatarElement.innerHTML =
+            "";
 
 
         if (profile.avatar) {
@@ -159,9 +170,11 @@ async function loadProfile() {
             image.loading =
                 "lazy";
 
+
             image.onerror = () => {
 
-                avatarElement.innerHTML = "";
+                avatarElement.innerHTML =
+                    "";
 
                 avatarElement.textContent =
                     profile.username
@@ -183,25 +196,10 @@ async function loadProfile() {
         }
 
 
-        // ========================================
-        // BIO
-        // ========================================
+        bioElement.textContent =
+            profile.bio ||
+            "Welcome to my Mullar.Online profile.";
 
-        if (profile.bio) {
-
-            bioElement.textContent =
-                profile.bio;
-
-        } else {
-
-            bioElement.textContent =
-                "Welcome to my Mullar.Online profile.";
-        }
-
-
-        // ========================================
-        // MEMBER SINCE
-        // ========================================
 
         if (profile.created_at) {
 
@@ -235,10 +233,6 @@ async function loadProfile() {
         }
 
 
-        // ========================================
-        // DISCORD
-        // ========================================
-
         if (profile.discord) {
 
             profileLinks[0].href =
@@ -256,10 +250,6 @@ async function loadProfile() {
         }
 
 
-        // ========================================
-        // GITHUB
-        // ========================================
-
         if (profile.github) {
 
             profileLinks[1].href =
@@ -274,10 +264,6 @@ async function loadProfile() {
                 "none";
         }
 
-
-        // ========================================
-        // INSTAGRAM
-        // ========================================
 
         if (profile.instagram) {
 
@@ -294,10 +280,6 @@ async function loadProfile() {
         }
 
 
-        // ========================================
-        // BANNER
-        // ========================================
-
         if (profile.banner) {
 
             bannerElement.style.backgroundImage =
@@ -310,10 +292,6 @@ async function loadProfile() {
         }
 
 
-        // ========================================
-        // TITLE
-        // ========================================
-
         document.title =
             `${profile.username} — Mullar.Online`;
 
@@ -325,30 +303,13 @@ async function loadProfile() {
             error
         );
 
-
         usernameElement.textContent =
             "Something went wrong";
 
-        handleElement.textContent =
-            "Could not load this profile.";
-
-        planElement.textContent =
-            "ERROR";
-
-        avatarElement.textContent =
-            "!";
-
         bioElement.textContent =
             "Nie udało się załadować profilu.";
-
-        memberSinceElement.textContent =
-            "—";
     }
 }
 
-
-// ========================================
-// START
-// ========================================
 
 loadProfile();

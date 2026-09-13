@@ -16,22 +16,48 @@ const activationCode =
 const redeemMessage =
     document.getElementById("redeemMessage");
 
+const profileLink =
+    document.getElementById("profileLink");
 
-// ================================
-// LOAD ACCOUNT
-// ================================
+const API_URL =
+    "https://mullar-api.sameksamuel17.workers.dev";
+
+const token =
+    localStorage.getItem("mullar_token");
+
 
 async function loadAccount() {
+
+    if (!token) {
+
+        window.location.href =
+            "/login.html";
+
+        return;
+    }
 
     try {
 
         const response =
-            await fetch("/api/me");
+            await fetch(
+                `${API_URL}/api/me`,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
 
         const data =
             await response.json();
 
-        if (!data.loggedIn) {
+
+        if (!response.ok || !data.loggedIn) {
+
+            localStorage.removeItem(
+                "mullar_token"
+            );
 
             window.location.href =
                 "/login.html";
@@ -39,14 +65,19 @@ async function loadAccount() {
             return;
         }
 
+
         const user =
             data.user;
+
 
         welcome.textContent =
             `Cześć, ${user.username}!`;
 
+
         let planText =
-            user.plan.toUpperCase();
+            (user.plan || "free")
+                .toUpperCase();
+
 
         if (
             user.plan === "pro" &&
@@ -71,41 +102,38 @@ async function loadAccount() {
             }
         }
 
+
         if (user.plan === "premium") {
 
             planText =
                 "PREMIUM — NA ZAWSZE";
         }
 
+
         accountInfo.innerHTML = `
             Plan:
-            <strong>
-                ${planText}
-            </strong>
-
+            <strong>${planText}</strong>
             <br>
-
             Email:
             ${user.email}
         `;
 
 
-        const profileLink =
-            document.getElementById(
-                "profileLink"
-            );
-
         if (profileLink) {
 
             profileLink.href =
-                `/u/${encodeURIComponent(
+                `/profile.html?user=${encodeURIComponent(
                     user.username
                 )}`;
         }
 
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Account error:",
+            error
+        );
 
         accountInfo.textContent =
             "Nie udało się pobrać danych konta.";
@@ -113,91 +141,38 @@ async function loadAccount() {
 }
 
 
-// ================================
-// REDEEM CODE
-// ================================
-
-redeemForm.addEventListener(
-    "submit",
-    async (event) => {
-
-        event.preventDefault();
-
-        const code =
-            activationCode.value.trim();
-
-        if (!code) {
-
-            redeemMessage.textContent =
-                "Wpisz kod aktywacyjny.";
-
-            return;
-        }
-
-        redeemMessage.textContent =
-            "Sprawdzanie kodu...";
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/redeem-code",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body: JSON.stringify({
-                            code: code
-                        })
-                    }
-                );
-
-            const data =
-                await response.json();
-
-            if (!data.success) {
-
-                redeemMessage.textContent =
-                    data.message;
-
-                return;
-            }
-
-            redeemMessage.textContent =
-                `✓ ${data.message}`;
-
-            activationCode.value = "";
-
-            await loadAccount();
-
-        } catch (error) {
-
-            console.error(error);
-
-            redeemMessage.textContent =
-                "Wystąpił błąd podczas aktywacji kodu.";
-        }
-    }
-);
-
-
-// ================================
+// ========================================
 // LOGOUT
-// ================================
+// ========================================
 
 logoutButton.addEventListener(
     "click",
     async () => {
 
-        await fetch(
-            "/api/logout",
-            {
-                method: "POST"
-            }
+        try {
+
+            await fetch(
+                `${API_URL}/api/logout`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Logout error:",
+                error
+            );
+        }
+
+        localStorage.removeItem(
+            "mullar_token"
         );
 
         window.location.href =
@@ -206,8 +181,8 @@ logoutButton.addEventListener(
 );
 
 
-// ================================
+// ========================================
 // START
-// ================================
+// ========================================
 
 loadAccount();
