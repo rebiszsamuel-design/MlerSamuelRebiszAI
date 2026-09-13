@@ -1,3 +1,6 @@
+const API_URL =
+    "https://mullar-api.sameksamuel17.workers.dev";
+
 const generateProButton =
     document.getElementById("generatePro");
 
@@ -7,8 +10,6 @@ const generatePremiumButton =
 const result =
     document.getElementById("result");
 
-const API_URL =
-    "https://mullar-api.sameksamuel17.workers.dev";
 
 async function generateCode(plan) {
 
@@ -21,11 +22,10 @@ async function generateCode(plan) {
         return;
     }
 
-    result.className =
-        "admin-result";
 
     result.textContent =
         "Generowanie kodu...";
+
 
     try {
 
@@ -43,16 +43,19 @@ async function generateCode(plan) {
                             adminKey
                     },
 
-                    body: JSON.stringify({
-                        plan: plan
-                    })
+                    body:
+                        JSON.stringify({
+                            plan
+                        })
                 }
             );
+
 
         const data =
             await response.json();
 
-        if (!response.ok || !data.success) {
+
+        if (!response.ok) {
 
             result.textContent =
                 data.message ||
@@ -61,20 +64,75 @@ async function generateCode(plan) {
             return;
         }
 
-        result.className =
-            "admin-result success";
+
+        if (!data.success) {
+
+            result.textContent =
+                data.message ||
+                "Nie udało się wygenerować kodu.";
+
+            return;
+        }
+
 
         result.innerHTML = `
-            Kod ${data.plan.toUpperCase()}:
+            <div class="generated-code">
+                <div>
+                    Kod ${plan === "pro"
+                        ? "PRO"
+                        : "PREMIUM"}:
+                </div>
 
-            <strong class="admin-code">
-                ${data.code}
-            </strong>
+                <strong>
+                    ${data.code}
+                </strong>
+
+                <button
+                    type="button"
+                    id="copyCode"
+                >
+                    Kopiuj kod
+                </button>
+            </div>
         `;
+
+
+        const copyButton =
+            document.getElementById(
+                "copyCode"
+            );
+
+
+        if (copyButton) {
+
+            copyButton.addEventListener(
+                "click",
+                async () => {
+
+                    try {
+
+                        await navigator.clipboard.writeText(
+                            data.code
+                        );
+
+                        copyButton.textContent =
+                            "Skopiowano ✓";
+
+                    } catch (error) {
+
+                        copyButton.textContent =
+                            "Nie udało się skopiować";
+                    }
+                }
+            );
+        }
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Generate code error:",
+            error
+        );
 
         result.textContent =
             "Nie udało się połączyć z serwerem.";
@@ -82,17 +140,23 @@ async function generateCode(plan) {
 }
 
 
-generateProButton.addEventListener(
-    "click",
-    () => {
-        generateCode("pro");
-    }
-);
+if (generateProButton) {
+
+    generateProButton.addEventListener(
+        "click",
+        () => {
+            generateCode("pro");
+        }
+    );
+}
 
 
-generatePremiumButton.addEventListener(
-    "click",
-    () => {
-        generateCode("premium");
-    }
-);
+if (generatePremiumButton) {
+
+    generatePremiumButton.addEventListener(
+        "click",
+        () => {
+            generateCode("premium");
+        }
+    );
+}
