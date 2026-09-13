@@ -1,46 +1,102 @@
-const registerForm = document.getElementById("registerForm");
-const message = document.getElementById("message");
+const registerForm =
+    document.getElementById("registerForm");
 
-registerForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+const message =
+    document.getElementById("message");
 
-    const username = document.getElementById("username").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+const API_URL =
+    "https://mullar-api.sameksamuel17.workers.dev";
 
-    message.textContent = "Tworzenie konta...";
 
-    try {
-        const response = await fetch("/api/register", {
-            method: "POST",
+registerForm.addEventListener(
+    "submit",
+    async (event) => {
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+        event.preventDefault();
 
-            body: JSON.stringify({
-                username,
-                email,
-                password
-            })
-        });
+        const username =
+            document
+                .getElementById("username")
+                .value
+                .trim();
 
-        const data = await response.json();
+        const email =
+            document
+                .getElementById("email")
+                .value
+                .trim();
 
-        message.textContent = data.message;
+        const password =
+            document
+                .getElementById("password")
+                .value;
 
-        if (data.success) {
-            registerForm.reset();
-
-            setTimeout(() => {
-                window.location.href = "/login.html";
-            }, 1200);
-        }
-
-    } catch (error) {
-        console.error(error);
 
         message.textContent =
-            "Nie udało się połączyć z serwerem.";
+            "Tworzenie konta...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/api/register`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            username,
+                            email,
+                            password
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                message.textContent =
+                    data.error ||
+                    "Nie udało się utworzyć konta.";
+
+                return;
+            }
+
+
+            message.textContent =
+                data.message ||
+                "Konto zostało utworzone!";
+
+
+            registerForm.reset();
+
+
+            setTimeout(() => {
+
+                window.location.href =
+                    "/login.html";
+
+            }, 1200);
+
+
+        } catch (error) {
+
+            console.error(
+                "Register error:",
+                error
+            );
+
+            message.textContent =
+                "Nie udało się połączyć z serwerem.";
+        }
     }
-});
+);
