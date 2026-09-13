@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Account — Mullar.Online</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <main class="profile-card auth-card">
+
+        <section class="profile-content">
+
+            <div class="auth-logo">
+                M
+            </div>
+
+            <h1 id="welcome">
+                Ładowanie...
+            </h1>
+
+            <p id="accountInfo" class="auth-description">
+                Sprawdzanie konta...
+            </p>
+
+            <!-- ========================= -->
+            <!-- AKTYWACJA KODU -->
+            <!-- ========================= -->
+
+            <div class="activation-box">
+
+                <h2>
+                    Aktywuj PRO / Premium
+                </h2>
+
+                <p>
+                    Wpisz swój jednorazowy kod aktywacyjny.
+                </p>
+
+                <form id="redeemForm">
+
+                    <input
+                        id="activationCode"
+                        type="text"
+                        placeholder="MULLAR-PRO-XXXXXXXX"
+                        autocomplete="off"
+                        maxlength="100"
+                        required
+                    >
+
+                    <button type="submit">
+                        Aktywuj kod
+                    </button>
+
+                </form>
+
+                <p id="redeemMessage"></p>
+
+            </div>
+
+            <!-- ========================= -->
+            <!-- LINKI -->
+            <!-- ========================= -->
+
+            <div class="links">
+
+                <!-- MOJA STRONA -->
+
+                <a
+                    href="#"
+                    id="profileLink"
+                    class="link"
+                >
+
+                    <span class="link-icon">
+                        ⌂
+                    </span>
+
+                    <span>
+                        Moja strona
+                    </span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
+                </a>
+
+                <!-- EDYCJA PROFILU -->
+
+                <a
+                    href="/edit-profile.html"
+                    class="link"
+                >
+
+                    <span class="link-icon">
+                        ✎
+                    </span>
+
+                    <span>
+                        Edytuj profil
+                    </span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
+                </a>
+
+                <!-- WYLOGOWANIE -->
+
+                <button
+                    id="logoutButton"
+                    class="link"
+                    type="button"
+                >
+
+                    <span class="link-icon">
+                        ↪
+                    </span>
+
+                    <span>
+                        Wyloguj się
+                    </span>
+
+                    <span class="arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/account.js"></script>
+
+</body>
+</html>

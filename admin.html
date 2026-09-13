@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin — Mullar.Online</title>
+
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin.css">
+</head>
+
+<body>
+
+    <main class="admin-page">
+
+        <section class="admin-card">
+
+            <div class="admin-logo">
+                M
+            </div>
+
+            <h1>
+                Mullar Admin
+            </h1>
+
+            <p class="admin-description">
+                Panel zarządzania kodami aktywacyjnymi
+            </p>
+
+            <div class="admin-buttons">
+
+                <button
+                    id="generatePro"
+                    class="admin-button pro-button"
+                    type="button"
+                >
+                    <span>⚡</span>
+                    Generuj PRO
+                </button>
+
+                <button
+                    id="generatePremium"
+                    class="admin-button premium-button"
+                    type="button"
+                >
+                    <span>👑</span>
+                    Generuj Premium
+                </button>
+
+            </div>
+
+            <div
+                id="result"
+                class="admin-result"
+            >
+                Wybierz plan, aby wygenerować kod.
+            </div>
+
+            <div class="admin-footer">
+
+                <a href="/account.html">
+                    ← Wróć do konta
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="/admin.js"></script>
+
+</body>
+</html>
