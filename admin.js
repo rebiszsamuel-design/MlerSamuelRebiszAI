@@ -7,8 +7,19 @@ const generatePremiumButton =
 const result =
     document.getElementById("result");
 
+const API_URL =
+    "https://mullar-api.sameksamuel17.workers.dev";
 
 async function generateCode(plan) {
+
+    const adminKey =
+        prompt("Podaj klucz administratora:");
+
+    if (!adminKey) {
+        result.textContent =
+            "Anulowano.";
+        return;
+    }
 
     result.className =
         "admin-result";
@@ -20,13 +31,16 @@ async function generateCode(plan) {
 
         const response =
             await fetch(
-                "/api/admin/generate-code",
+                `${API_URL}/api/admin/generate-code`,
                 {
                     method: "POST",
 
                     headers: {
                         "Content-Type":
-                            "application/json"
+                            "application/json",
+
+                        "X-Admin-Key":
+                            adminKey
                     },
 
                     body: JSON.stringify({
@@ -38,10 +52,11 @@ async function generateCode(plan) {
         const data =
             await response.json();
 
-        if (!data.success) {
+        if (!response.ok || !data.success) {
 
             result.textContent =
-                data.message;
+                data.message ||
+                "Nie udało się wygenerować kodu.";
 
             return;
         }
@@ -62,7 +77,7 @@ async function generateCode(plan) {
         console.error(error);
 
         result.textContent =
-            "Wystąpił błąd serwera.";
+            "Nie udało się połączyć z serwerem.";
     }
 }
 
