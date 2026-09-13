@@ -19,5 +19,8 @@
   },
   "allowScripts": {
     "bcrypt@6.0.0": true
+  },
+  "devDependencies": {
+    "wrangler": "^4.131.1"
   }
 }

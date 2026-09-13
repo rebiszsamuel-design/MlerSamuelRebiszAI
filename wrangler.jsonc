@@ -1,0 +1,15 @@
+{
+  "name": "mullar-api",
+  "main": "server/worker.js",
+  "compatibility_date": "2026-09-13",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "mullar_db",
+      "database_name": "mullar-db",
+      "database_id": "be2fc403-610e-4a7a-a390-077cfe59bee3"
+    }
+  ]
+}
