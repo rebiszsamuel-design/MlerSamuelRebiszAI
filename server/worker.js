@@ -11,6 +11,9 @@ const OG_CUTOFF =
 const AVATAR_MAX_BYTES =
   5 * 1024 * 1024;
 
+const BANNER_MAX_BYTES =
+  8 * 1024 * 1024;
+
 const ALLOWED_ANIMATIONS =
   new Set([
     "none",
@@ -109,7 +112,9 @@ function getToken(request) {
 }
 
 
-async function hashPassword(password) {
+async function hashPassword(
+  password
+) {
 
   const encoder =
     new TextEncoder();
@@ -167,6 +172,7 @@ function randomPart() {
   let result = "";
 
   for (const byte of bytes) {
+
     result +=
       alphabet[
         byte % alphabet.length
@@ -204,7 +210,7 @@ function isPremium(user) {
 }
 
 
-function isPaid(user) {
+function isPro(user) {
 
   const plan =
     String(
@@ -357,8 +363,7 @@ async function getUserFromRequest(
   const user =
     await env.mullar_db
       .prepare(`
-        SELECT
-          users.*
+        SELECT users.*
         FROM sessions
         INNER JOIN users
           ON users.id = sessions.user_id
@@ -409,7 +414,9 @@ function parseLinks(
   value
 ) {
 
-  if (Array.isArray(value)) {
+  if (
+    Array.isArray(value)
+  ) {
     return value;
   }
 
@@ -444,6 +451,7 @@ function normalizeLinks(
 
   const result = [];
 
+
   for (
     const item of input.slice(
       0,
@@ -458,15 +466,20 @@ function normalizeLinks(
       continue;
     }
 
+
     const title =
       String(
         item.title || ""
-      ).trim();
+      )
+      .trim()
+      .slice(0, 60);
+
 
     const url =
       cleanHttpUrl(
         item.url
       );
+
 
     const icon =
       premium
@@ -475,6 +488,7 @@ function normalizeLinks(
           )
         : "";
 
+
     if (
       !title ||
       !url
@@ -482,15 +496,14 @@ function normalizeLinks(
       continue;
     }
 
+
     result.push({
-      title:
-        title.slice(0, 60),
-
+      title,
       url,
-
       icon
     });
   }
+
 
   return result;
 }
@@ -501,10 +514,18 @@ function extensionFromType(
 ) {
 
   const map = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/gif": "gif"
+
+    "image/jpeg":
+      "jpg",
+
+    "image/png":
+      "png",
+
+    "image/webp":
+      "webp",
+
+    "image/gif":
+      "gif"
   };
 
   return map[type] || null;
@@ -528,7 +549,9 @@ function getMediaKeyFromUrl(
         marker
       );
 
-    if (index === -1) {
+    if (
+      index === -1
+    ) {
       return null;
     }
 
@@ -551,12 +574,16 @@ function makeMediaUrl(
 ) {
 
   const origin =
-    new URL(request.url).origin;
+    new URL(
+      request.url
+    ).origin;
 
   return (
     origin +
     "/media/" +
-    encodeURIComponent(key)
+    encodeURIComponent(
+      key
+    )
   );
 }
 
@@ -589,7 +616,7 @@ async function saveUploadedImage(
   ) {
 
     throw new Error(
-      "Upload musi być wysłany jako multipart/form-data."
+      "Upload musi używać multipart/form-data."
     );
   }
 
@@ -613,13 +640,21 @@ async function saveUploadedImage(
   }
 
 
+  const maxSize =
+    type === "avatar"
+      ? AVATAR_MAX_BYTES
+      : BANNER_MAX_BYTES;
+
+
   if (
     file.size >
-    AVATAR_MAX_BYTES
+    maxSize
   ) {
 
     throw new Error(
-      "Obraz może mieć maksymalnie 5 MB."
+      type === "avatar"
+        ? "Avatar może mieć maksymalnie 5 MB."
+        : "Banner może mieć maksymalnie 8 MB."
     );
   }
 
@@ -633,7 +668,7 @@ async function saveUploadedImage(
   if (!extension) {
 
     throw new Error(
-      "Dozwolone są tylko JPG, PNG, WEBP i GIF."
+      "Dozwolone są JPG, PNG, WEBP i GIF."
     );
   }
 
@@ -659,8 +694,14 @@ async function saveUploadedImage(
       .join("");
 
 
+  const folder =
+    type === "avatar"
+      ? "avatars"
+      : "banners";
+
+
   const key =
-    `${type}s/${user.id}-${Date.now()}-${randomId}.${extension}`;
+    `${folder}/${user.id}-${Date.now()}-${randomId}.${extension}`;
 
 
   const oldUrl =
@@ -689,10 +730,11 @@ async function saveUploadedImage(
         oldUrl
       );
 
+
     if (
       oldKey &&
       oldKey.startsWith(
-        `${type}s/`
+        `${folder}/`
       )
     ) {
 
@@ -703,7 +745,7 @@ async function saveUploadedImage(
         );
 
       } catch {
-        // Stary plik nie blokuje nowego uploadu.
+        // Nie blokujemy nowego uploadu.
       }
     }
   }
@@ -716,10 +758,6 @@ async function saveUploadedImage(
 }
 
 
-// ========================================
-// WORKER
-// ========================================
-
 export default {
 
   async fetch(
@@ -728,7 +766,7 @@ export default {
   ) {
 
     // ========================================
-    // CORS
+    // OPTIONS / CORS
     // ========================================
 
     if (
@@ -748,7 +786,9 @@ export default {
 
 
     const url =
-      new URL(request.url);
+      new URL(
+        request.url
+      );
 
 
     // ========================================
@@ -769,6 +809,7 @@ export default {
             )
             .first();
 
+
         return json(
           request,
           {
@@ -781,7 +822,9 @@ export default {
               "D1 działa!",
 
             users:
-              result.count
+              Number(
+                result?.count || 0
+              )
           }
         );
 
@@ -801,7 +844,7 @@ export default {
 
 
     // ========================================
-    // MEDIA
+    // R2 MEDIA GET
     // ========================================
 
     if (
@@ -813,11 +856,26 @@ export default {
 
       try {
 
+        if (!env.MULLAR_MEDIA) {
+
+          return new Response(
+            "R2 not configured",
+            {
+              status: 500
+            }
+          );
+        }
+
+
+        const encodedKey =
+          url.pathname.slice(
+            "/media/".length
+          );
+
+
         const key =
           decodeURIComponent(
-            url.pathname.slice(
-              "/media/".length
-            )
+            encodedKey
           );
 
 
@@ -844,6 +902,7 @@ export default {
             "Not found",
             {
               status: 404,
+
               headers:
                 corsHeaders(request)
             }
@@ -881,6 +940,7 @@ export default {
           error.message,
           {
             status: 500,
+
             headers:
               corsHeaders(request)
           }
@@ -904,17 +964,20 @@ export default {
         const body =
           await request.json();
 
+
         const username =
           String(
             body.username || ""
           ).trim();
 
+
         const email =
           String(
             body.email || ""
           )
-            .trim()
-            .toLowerCase();
+          .trim()
+          .toLowerCase();
+
 
         const password =
           String(
@@ -932,6 +995,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Wszystkie pola są wymagane."
             },
@@ -949,6 +1013,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Nazwa użytkownika musi mieć od 3 do 30 znaków."
             },
@@ -967,6 +1032,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Nazwa użytkownika może zawierać tylko litery, cyfry, _, - i ."
             },
@@ -983,6 +1049,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Hasło musi mieć co najmniej 6 znaków."
             },
@@ -1013,6 +1080,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Użytkownik o tej nazwie lub adresie e-mail już istnieje."
             },
@@ -1071,8 +1139,10 @@ export default {
           request,
           {
             ok: false,
+
             error:
               "Nie udało się utworzyć konta.",
+
             details:
               error.message
           },
@@ -1097,10 +1167,12 @@ export default {
         const body =
           await request.json();
 
+
         const login =
           String(
             body.login || ""
           ).trim();
+
 
         const password =
           String(
@@ -1117,6 +1189,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Wpisz login i hasło."
             },
@@ -1147,6 +1220,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Nieprawidłowy login lub hasło."
             },
@@ -1170,6 +1244,7 @@ export default {
             request,
             {
               ok: false,
+
               error:
                 "Nieprawidłowy login lub hasło."
             },
@@ -1218,8 +1293,10 @@ export default {
           request,
           {
             ok: false,
+
             error:
               "Nie udało się zalogować.",
+
             details:
               error.message
           },
@@ -1254,7 +1331,9 @@ export default {
             request,
             {
               ok: false,
-              loggedIn: false
+
+              loggedIn:
+                false
             },
             401
           );
@@ -1266,7 +1345,8 @@ export default {
           {
             ok: true,
 
-            loggedIn: true,
+            loggedIn:
+              true,
 
             user:
               publicUser(user)
@@ -1279,6 +1359,7 @@ export default {
           request,
           {
             ok: false,
+
             error:
               error.message
           },
@@ -1322,6 +1403,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Brak użytkownika."
             },
@@ -1374,6 +1456,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nie znaleziono profilu."
             },
@@ -1382,33 +1465,34 @@ export default {
         }
 
 
-        const result = {
-          ...profile,
-
-          og_eligible:
-            isOgEligible(profile),
-
-          og_visible:
-            isOgEligible(profile) &&
-            Number(
-              profile.og_hidden || 0
-            ) !== 1,
-
-          profile_animation:
-            ALLOWED_ANIMATIONS.has(
-              profile.profile_animation
-            )
-              ? profile.profile_animation
-              : "none"
-        };
-
-
         return json(
           request,
           {
             success: true,
-            profile:
-              result
+
+            profile: {
+              ...profile,
+
+              og_eligible:
+                isOgEligible(
+                  profile
+                ),
+
+              og_visible:
+                isOgEligible(
+                  profile
+                ) &&
+                Number(
+                  profile.og_hidden || 0
+                ) !== 1,
+
+              profile_animation:
+                ALLOWED_ANIMATIONS.has(
+                  profile.profile_animation
+                )
+                  ? profile.profile_animation
+                  : "none"
+            }
           }
         );
 
@@ -1418,8 +1502,10 @@ export default {
           request,
           {
             success: false,
+
             message:
               "Nie udało się pobrać profilu.",
+
             details:
               error.message
           },
@@ -1454,6 +1540,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Musisz być zalogowany."
             },
@@ -1469,25 +1556,45 @@ export default {
         const bio =
           String(
             body.bio || ""
-          ).trim().slice(0, 500);
+          )
+          .trim()
+          .slice(
+            0,
+            500
+          );
 
 
         const discord =
           String(
             body.discord || ""
-          ).trim().slice(0, 100);
+          )
+          .trim()
+          .slice(
+            0,
+            200
+          );
 
 
         const github =
           String(
             body.github || ""
-          ).trim().slice(0, 100);
+          )
+          .trim()
+          .slice(
+            0,
+            200
+          );
 
 
         const instagram =
           String(
             body.instagram || ""
-          ).trim().slice(0, 100);
+          )
+          .trim()
+          .slice(
+            0,
+            200
+          );
 
 
         const ogHidden =
@@ -1507,7 +1614,7 @@ export default {
 
 
         const likesEnabled =
-          isPaid(user) &&
+          isPro(user) &&
           Number(
             body.likes_enabled || 0
           ) === 1
@@ -1516,39 +1623,43 @@ export default {
 
 
         const profileColor =
-          isPaid(user)
+          isPro(user)
             ? String(
                 body.profile_color ||
                 "#0e0e0e"
               )
-            : "#0e0e0e";
+            : user.profile_color ||
+              "#0e0e0e";
 
 
         const nameColor =
-          isPaid(user)
+          isPro(user)
             ? String(
                 body.name_color ||
                 "#ffffff"
               )
-            : "#ffffff";
+            : user.name_color ||
+              "#ffffff";
 
 
         const glow1 =
-          isPaid(user)
+          isPro(user)
             ? String(
                 body.glow1_color ||
                 "#6b4cff"
               )
-            : "#6b4cff";
+            : user.glow1_color ||
+              "#6b4cff";
 
 
         const glow2 =
-          isPaid(user)
+          isPro(user)
             ? String(
                 body.glow2_color ||
                 "#00aaff"
               )
-            : "#00aaff";
+            : user.glow2_color ||
+              "#00aaff";
 
 
         const neonName =
@@ -1560,42 +1671,61 @@ export default {
             : 0;
 
 
-        const animation =
+        const animationInput =
+          String(
+            body.profile_animation ||
+            "none"
+          );
+
+
+        const profileAnimation =
           isPremium(user) &&
           ALLOWED_ANIMATIONS.has(
-            String(
-              body.profile_animation ||
-              "none"
-            )
+            animationInput
           )
-            ? String(
-                body.profile_animation
-              )
+            ? animationInput
             : "none";
 
 
-        let extraLinks =
-          isPremium(user)
-            ? normalizeLinks(
-                body.extra_links,
-                5,
-                true
-              )
-            : isPaid(user)
-              ? normalizeLinks(
-                  body.extra_links,
-                  2,
-                  false
-                )
-              : [];
+        let extraLinks = [];
 
 
-        let musicUrl =
+        if (isPremium(user)) {
+
+          extraLinks =
+            normalizeLinks(
+              body.extra_links,
+              5,
+              true
+            );
+
+        } else if (isPro(user)) {
+
+          extraLinks =
+            normalizeLinks(
+              body.extra_links,
+              2,
+              false
+            );
+
+        } else {
+
+          extraLinks =
+            normalizeLinks(
+              body.extra_links,
+              1,
+              false
+            );
+        }
+
+
+        const musicUrl =
           isPremium(user)
             ? cleanHttpUrl(
                 body.music_url
               )
-            : "";
+            : user.music_url ||
+              "";
 
 
         const avatar =
@@ -1624,6 +1754,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nieprawidłowy kolor profilu."
             },
@@ -1642,6 +1773,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nieprawidłowy kolor nazwy."
             },
@@ -1663,6 +1795,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nieprawidłowy kolor glow."
             },
@@ -1713,7 +1846,7 @@ export default {
               extraLinks
             ),
             musicUrl,
-            animation,
+            profileAnimation,
             user.id
           )
           .run();
@@ -1728,9 +1861,12 @@ export default {
               "Profil został zapisany.",
 
             profile_animation:
-              animation,
+              profileAnimation,
 
-            avatar
+            avatar,
+
+            extra_links:
+              extraLinks
           }
         );
 
@@ -1778,6 +1914,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Musisz być zalogowany."
             },
@@ -1793,6 +1930,19 @@ export default {
             user,
             "avatar"
           );
+
+
+        await env.mullar_db
+          .prepare(`
+            UPDATE users
+            SET avatar = ?
+            WHERE id = ?
+          `)
+          .bind(
+            mediaUrl,
+            user.id
+          )
+          .run();
 
 
         return json(
@@ -1850,6 +2000,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Musisz być zalogowany."
             },
@@ -1865,6 +2016,19 @@ export default {
             user,
             "banner"
           );
+
+
+        await env.mullar_db
+          .prepare(`
+            UPDATE users
+            SET banner = ?
+            WHERE id = ?
+          `)
+          .bind(
+            mediaUrl,
+            user.id
+          )
+          .run();
 
 
         return json(
@@ -1898,7 +2062,7 @@ export default {
 
 
     // ========================================
-    // VIEW
+    // PROFILE VIEW
     // ========================================
 
     if (
@@ -1927,7 +2091,9 @@ export default {
         const profile =
           await env.mullar_db
             .prepare(`
-              SELECT id, views_enabled
+              SELECT
+                id,
+                views_enabled
               FROM users
               WHERE username = ?
               LIMIT 1
@@ -1944,6 +2110,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nie znaleziono profilu."
             },
@@ -1962,6 +2129,7 @@ export default {
             request,
             {
               success: true,
+
               views_count: 0
             }
           );
@@ -2001,7 +2169,8 @@ export default {
 
             views_count:
               Number(
-                result?.views_count || 0
+                result?.views_count ||
+                0
               )
           }
         );
@@ -2012,8 +2181,10 @@ export default {
           request,
           {
             success: false,
+
             message:
               "Nie udało się zarejestrować wyświetlenia.",
+
             details:
               error.message
           },
@@ -2024,7 +2195,7 @@ export default {
 
 
     // ========================================
-    // LIKE
+    // PROFILE LIKE
     // ========================================
 
     if (
@@ -2073,6 +2244,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nie znaleziono profilu."
             },
@@ -2084,19 +2256,34 @@ export default {
         if (
           Number(
             profile.likes_enabled || 0
-          ) !== 1 ||
-          (
-            profile.plan !== "pro" &&
-            profile.plan !== "premium"
-          )
+          ) !== 1
         ) {
 
           return json(
             request,
             {
               success: false,
+
               message:
                 "Polubienia są wyłączone."
+            },
+            403
+          );
+        }
+
+
+        if (
+          profile.plan !== "pro" &&
+          profile.plan !== "premium"
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+
+              message:
+                "Polubienia są dostępne dla PRO i Premium."
             },
             403
           );
@@ -2136,7 +2323,8 @@ export default {
 
             likes_count:
               Number(
-                result?.likes_count || 0
+                result?.likes_count ||
+                0
               )
           }
         );
@@ -2161,7 +2349,7 @@ export default {
 
 
     // ========================================
-    // REDEEM
+    // REDEEM PRO / PREMIUM
     // ========================================
 
     if (
@@ -2185,6 +2373,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Musisz być zalogowany."
             },
@@ -2201,8 +2390,8 @@ export default {
           String(
             body.code || ""
           )
-            .trim()
-            .toUpperCase();
+          .trim()
+          .toUpperCase();
 
 
         if (!code) {
@@ -2211,6 +2400,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Wpisz kod aktywacyjny."
             },
@@ -2239,6 +2429,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nieprawidłowy kod aktywacyjny."
             },
@@ -2257,6 +2448,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Ten kod został już wykorzystany."
             },
@@ -2265,34 +2457,42 @@ export default {
         }
 
 
-        const plan =
+        const activationPlan =
           String(
             activation.plan || ""
           )
-            .trim()
-            .toLowerCase();
+          .trim()
+          .toLowerCase();
+
+
+        if (
+          activationPlan !== "pro" &&
+          activationPlan !== "premium"
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+
+              message:
+                "Kod ma nieprawidłowy plan."
+            },
+            400
+          );
+        }
 
 
         let userPlan =
-          "free";
+          activationPlan;
 
         let expiresAt =
           null;
 
 
         if (
-          plan === "premium"
+          activationPlan === "pro"
         ) {
-
-          userPlan =
-            "premium";
-
-        } else if (
-          plan === "pro"
-        ) {
-
-          userPlan =
-            "pro";
 
           const expiration =
             new Date();
@@ -2303,18 +2503,6 @@ export default {
 
           expiresAt =
             expiration.toISOString();
-
-        } else {
-
-          return json(
-            request,
-            {
-              success: false,
-              message:
-                "Kod ma nieprawidłowy plan."
-            },
-            400
-          );
         }
 
 
@@ -2325,8 +2513,7 @@ export default {
               SET
                 redeemed = 1,
                 redeemed_by = ?,
-                redeemed_at =
-                  CURRENT_TIMESTAMP
+                redeemed_at = CURRENT_TIMESTAMP
               WHERE id = ?
                 AND redeemed = 0
             `)
@@ -2347,6 +2534,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Ten kod został już wykorzystany."
             },
@@ -2400,7 +2588,13 @@ export default {
             message:
               userPlan === "premium"
                 ? "Premium zostało aktywowane."
-                : "PRO zostało aktywowane na 7 dni."
+                : "PRO zostało aktywowane na 7 dni.",
+
+            plan:
+              userPlan,
+
+            plan_expires_at:
+              expiresAt
           }
         );
 
@@ -2451,6 +2645,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Brak dostępu."
             },
@@ -2467,8 +2662,8 @@ export default {
           String(
             body.plan || ""
           )
-            .trim()
-            .toLowerCase();
+          .trim()
+          .toLowerCase();
 
 
         if (
@@ -2480,6 +2675,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nieprawidłowy plan."
             },
@@ -2533,6 +2729,7 @@ export default {
             request,
             {
               success: false,
+
               message:
                 "Nie udało się wygenerować kodu."
             },
@@ -2573,8 +2770,10 @@ export default {
           request,
           {
             success: false,
+
             message:
               "Nie udało się wygenerować kodu.",
+
             details:
               error.message
           },
@@ -2630,6 +2829,7 @@ export default {
           request,
           {
             ok: false,
+
             error:
               error.message
           },
@@ -2640,7 +2840,7 @@ export default {
 
 
     // ========================================
-    // NOT FOUND
+    // 404
     // ========================================
 
     return json(
