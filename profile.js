@@ -123,6 +123,8 @@ const profileAudio =
 
 let profile = null;
 
+let animationHandles = [];
+
 
 function safeUrl(value) {
 
@@ -139,6 +141,7 @@ function safeUrl(value) {
             url.protocol !== "http:" &&
             url.protocol !== "https:"
         ) {
+
             return null;
         }
 
@@ -176,11 +179,15 @@ function planName(plan) {
             plan || "free"
         ).toLowerCase();
 
-    if (value === "premium") {
+    if (
+        value === "premium"
+    ) {
         return "PREMIUM";
     }
 
-    if (value === "pro") {
+    if (
+        value === "pro"
+    ) {
         return "PRO";
     }
 
@@ -195,11 +202,15 @@ function planClass(plan) {
             plan || "free"
         ).toLowerCase();
 
-    if (value === "premium") {
+    if (
+        value === "premium"
+    ) {
         return "premium-badge";
     }
 
-    if (value === "pro") {
+    if (
+        value === "pro"
+    ) {
         return "pro-badge";
     }
 
@@ -209,18 +220,18 @@ function planClass(plan) {
 
 function parseLinks(value) {
 
-    if (Array.isArray(value)) {
+    if (
+        Array.isArray(value)
+    ) {
         return value;
-    }
-
-    if (!value) {
-        return [];
     }
 
     try {
 
         const parsed =
-            JSON.parse(value);
+            JSON.parse(
+                value || "[]"
+            );
 
         return Array.isArray(parsed)
             ? parsed
@@ -233,22 +244,6 @@ function parseLinks(value) {
 }
 
 
-function setText(
-    element,
-    value
-) {
-
-    if (element) {
-        element.textContent =
-            value;
-    }
-}
-
-
-/* ========================================
-   PLAN
-======================================== */
-
 function renderPlan() {
 
     if (!planElement) {
@@ -256,7 +251,9 @@ function renderPlan() {
     }
 
     planElement.textContent =
-        planName(profile.plan);
+        planName(
+            profile.plan
+        );
 
     planElement.className =
         `badge ${planClass(
@@ -264,10 +261,6 @@ function renderPlan() {
         )}`;
 }
 
-
-/* ========================================
-   AVATAR
-======================================== */
 
 function renderAvatar() {
 
@@ -279,7 +272,9 @@ function renderAvatar() {
         "";
 
     const avatarUrl =
-        safeUrl(profile.avatar);
+        safeUrl(
+            profile.avatar
+        );
 
 
     if (avatarUrl) {
@@ -310,8 +305,8 @@ function renderAvatar() {
                         profile.username ||
                         "M"
                     )
-                        .charAt(0)
-                        .toUpperCase();
+                    .charAt(0)
+                    .toUpperCase();
             };
 
 
@@ -319,23 +314,18 @@ function renderAvatar() {
             image
         );
 
-        return;
-    }
+    } else {
 
-
-    avatarElement.textContent =
-        String(
-            profile.username ||
-            "M"
-        )
+        avatarElement.textContent =
+            String(
+                profile.username ||
+                "M"
+            )
             .charAt(0)
             .toUpperCase();
+    }
 }
 
-
-/* ========================================
-   LINKS
-======================================== */
 
 function addLink(
     title,
@@ -344,11 +334,14 @@ function addLink(
 ) {
 
     const safe =
-        safeUrl(url);
+        safeUrl(
+            url
+        );
 
     if (!safe) {
         return;
     }
+
 
     const link =
         document.createElement(
@@ -371,7 +364,10 @@ function addLink(
     if (icon) {
 
         const safeIcon =
-            safeUrl(icon);
+            safeUrl(
+                icon
+            );
+
 
         if (safeIcon) {
 
@@ -419,6 +415,7 @@ function addLink(
         text
     );
 
+
     profileLinks.appendChild(
         link
     );
@@ -431,6 +428,7 @@ function renderLinks() {
         return;
     }
 
+
     profileLinks.innerHTML =
         "";
 
@@ -440,10 +438,12 @@ function renderLinks() {
         profile.discord
     );
 
+
     addLink(
         "GitHub",
         profile.github
     );
+
 
     addLink(
         "Instagram",
@@ -468,6 +468,7 @@ function renderLinks() {
                 return;
             }
 
+
             addLink(
                 item.title ||
                     "Link",
@@ -485,10 +486,6 @@ function renderLinks() {
 }
 
 
-/* ========================================
-   COLORS
-======================================== */
-
 function renderColors() {
 
     const cardColor =
@@ -497,17 +494,20 @@ function renderColors() {
             "#0e0e0e"
         );
 
+
     const firstGlow =
         safeColor(
             profile.glow1_color,
             "#6b4cff"
         );
 
+
     const secondGlow =
         safeColor(
             profile.glow2_color,
             "#00aaff"
         );
+
 
     const nameColor =
         safeColor(
@@ -517,18 +517,21 @@ function renderColors() {
 
 
     if (profileCard) {
+
         profileCard.style.background =
             cardColor;
     }
 
 
     if (glow1) {
+
         glow1.style.background =
             firstGlow;
     }
 
 
     if (glow2) {
+
         glow2.style.background =
             secondGlow;
     }
@@ -551,27 +554,17 @@ function renderColors() {
                 "premium";
 
 
-        if (neon) {
-
-            usernameElement.style.textShadow =
-                `
-                0 0 6px ${nameColor},
-                0 0 16px ${nameColor},
-                0 0 30px ${nameColor}
-                `;
-
-        } else {
-
-            usernameElement.style.textShadow =
-                "none";
-        }
+        usernameElement.style.textShadow =
+            neon
+                ? `
+                    0 0 6px ${nameColor},
+                    0 0 15px ${nameColor},
+                    0 0 28px ${nameColor}
+                  `
+                : "none";
     }
 }
 
-
-/* ========================================
-   OG
-======================================== */
 
 function renderOG() {
 
@@ -585,32 +578,19 @@ function renderOG() {
             profile.og_eligible
         );
 
+
     const hidden =
         Number(
             profile.og_hidden || 0
         ) === 1;
 
 
-    if (
-        !eligible ||
-        hidden
-    ) {
-
-        ogBadge.style.display =
-            "none";
-
-        return;
-    }
-
-
     ogBadge.style.display =
-        "inline-flex";
+        eligible && !hidden
+            ? "inline-flex"
+            : "none";
 }
 
-
-/* ========================================
-   STATS
-======================================== */
 
 function renderStats() {
 
@@ -633,15 +613,16 @@ function renderStats() {
         ) === 1;
 
 
+    const plan =
+        String(
+            profile.plan ||
+            "free"
+        ).toLowerCase();
+
+
     const paid =
-        String(
-            profile.plan ||
-            "free"
-        ).toLowerCase() === "pro" ||
-        String(
-            profile.plan ||
-            "free"
-        ).toLowerCase() === "premium";
+        plan === "pro" ||
+        plan === "premium";
 
 
     if (viewsEnabled) {
@@ -685,24 +666,26 @@ function renderStats() {
             `mullar_like_${profile.username}`;
 
 
-        const alreadyLiked =
+        const liked =
             localStorage.getItem(
                 key
             ) === "1";
 
 
         likeButton.disabled =
-            alreadyLiked;
+            liked;
+
+
+        likeButton.textContent =
+            liked
+                ? "♥"
+                : "♡";
+
 
         likeButton.classList.toggle(
             "liked",
-            alreadyLiked
+            liked
         );
-
-        likeButton.textContent =
-            alreadyLiked
-                ? "♥"
-                : "♡";
 
     } else {
 
@@ -711,27 +694,17 @@ function renderStats() {
     }
 
 
-    const somethingVisible =
-        viewsStat.style.display !==
-            "none" ||
-        likesStat.style.display !==
-            "none";
-
-
     profileStats.style.display =
-        somethingVisible
+        viewsEnabled ||
+        (likesEnabled && paid)
             ? "flex"
             : "none";
 }
 
 
-/* ========================================
-   MUSIC
-======================================== */
-
 function renderMusic() {
 
-    const musicUrl =
+    const url =
         safeUrl(
             profile.music_url
         );
@@ -742,11 +715,11 @@ function renderMusic() {
             profile.plan ||
             "free"
         ).toLowerCase() ===
-            "premium";
+        "premium";
 
 
     if (
-        !musicUrl ||
+        !url ||
         !premium
     ) {
 
@@ -762,122 +735,373 @@ function renderMusic() {
 
 
     profileAudio.src =
-        musicUrl;
-
+        url;
 
     musicPlayer.style.display =
         "flex";
 }
 
 
-/* ========================================
-   BANNER
-======================================== */
-
 function renderBanner() {
 
-    const bannerUrl =
+    if (!profileBanner) {
+        return;
+    }
+
+
+    const banner =
         safeUrl(
             profile.banner
         );
-
-
-    if (!bannerUrl) {
-
-        profileBanner.style.display =
-            "none";
-
-        return;
-    }
 
 
     profileBanner.style.display =
         "block";
 
 
-    profileBanner.style.backgroundImage =
-        `url("${bannerUrl}")`;
+    if (banner) {
+
+        profileBanner.style.backgroundImage =
+            `url("${banner}")`;
+
+        profileBanner.classList.add(
+            "has-banner"
+        );
+
+    } else {
+
+        profileBanner.style.backgroundImage =
+            "";
+
+        profileBanner.classList.remove(
+            "has-banner"
+        );
+    }
 }
 
 
-/* ========================================
-   DATA
-======================================== */
+function clearAnimations() {
 
-function renderProfile() {
+    animationHandles.forEach(
+        handle => {
 
-    setText(
-        usernameElement,
-        profile.username ||
-            "Mullar"
-    );
-
-    setText(
-        handleElement,
-        `@${profile.username || "mullar"}`
-    );
-
-    setText(
-        bioElement,
-        profile.bio ||
-            "Welcome to my Mullar.Online profile."
-    );
-
-
-    if (profile.created_at) {
-
-        const date =
-            new Date(
-                profile.created_at
-            );
-
-
-        if (
-            !Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            setText(
-                memberSince,
-                date.toLocaleDateString(
-                    "pl-PL",
-                    {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric"
-                    }
-                )
-            );
+            try {
+                handle.cancel();
+            } catch {
+                // Ignore.
+            }
         }
+    );
+
+
+    animationHandles =
+        [];
+}
+
+
+function animateElement(
+    element,
+    keyframes,
+    options
+) {
+
+    if (!element) {
+        return;
     }
 
 
-    renderPlan();
-
-    renderAvatar();
-
-    renderLinks();
-
-    renderColors();
-
-    renderOG();
-
-    renderStats();
-
-    renderMusic();
-
-    renderBanner();
+    if (
+        typeof element.animate !==
+        "function"
+    ) {
+        return;
+    }
 
 
-    document.title =
-        `${profile.username} — Mullar.Online`;
+    const animation =
+        element.animate(
+            keyframes,
+            options
+        );
+
+
+    animationHandles.push(
+        animation
+    );
 }
 
 
-/* ========================================
-   VIEW
-======================================== */
+function renderAnimation() {
+
+    clearAnimations();
+
+
+    if (!profileCard) {
+        return;
+    }
+
+
+    const plan =
+        String(
+            profile.plan ||
+            "free"
+        ).toLowerCase();
+
+
+    const animation =
+        String(
+            profile.profile_animation ||
+            "none"
+        ).toLowerCase();
+
+
+    if (
+        plan !== "premium" ||
+        animation === "none"
+    ) {
+
+        profileCard.style.transform =
+            "";
+
+        return;
+    }
+
+
+    if (
+        animation === "float"
+    ) {
+
+        animateElement(
+            profileCard,
+
+            [
+                {
+                    transform:
+                        "translateY(0)"
+                },
+
+                {
+                    transform:
+                        "translateY(-5px)"
+                }
+            ],
+
+            {
+                duration:
+                    3000,
+
+                iterations:
+                    Infinity,
+
+                direction:
+                    "alternate",
+
+                easing:
+                    "ease-in-out"
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        animation === "pulse"
+    ) {
+
+        animateElement(
+            profileCard,
+
+            [
+                {
+                    boxShadow:
+                        "0 32px 90px rgba(0,0,0,.55)"
+                },
+
+                {
+                    boxShadow:
+                        "0 32px 90px rgba(118,87,255,.38)"
+                },
+
+                {
+                    boxShadow:
+                        "0 32px 90px rgba(0,0,0,.55)"
+                }
+            ],
+
+            {
+                duration:
+                    2200,
+
+                iterations:
+                    Infinity,
+
+                easing:
+                    "ease-in-out"
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        animation === "glow"
+    ) {
+
+        animateElement(
+            glow1,
+
+            [
+                {
+                    opacity: .14,
+                    transform:
+                        "scale(1)"
+                },
+
+                {
+                    opacity: .30,
+                    transform:
+                        "scale(1.08)"
+                },
+
+                {
+                    opacity: .14,
+                    transform:
+                        "scale(1)"
+                }
+            ],
+
+            {
+                duration:
+                    2600,
+
+                iterations:
+                    Infinity,
+
+                easing:
+                    "ease-in-out"
+            }
+        );
+
+
+        animateElement(
+            glow2,
+
+            [
+                {
+                    opacity: .12,
+                    transform:
+                        "scale(1)"
+                },
+
+                {
+                    opacity: .27,
+                    transform:
+                        "scale(1.08)"
+                },
+
+                {
+                    opacity: .12,
+                    transform:
+                        "scale(1)"
+                }
+            ],
+
+            {
+                duration:
+                    3200,
+
+                iterations:
+                    Infinity,
+
+                easing:
+                    "ease-in-out"
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        animation === "tilt"
+    ) {
+
+        animateElement(
+            profileCard,
+
+            [
+                {
+                    transform:
+                        "rotate(-0.45deg)"
+                },
+
+                {
+                    transform:
+                        "rotate(0.45deg)"
+                },
+
+                {
+                    transform:
+                        "rotate(-0.45deg)"
+                }
+            ],
+
+            {
+                duration:
+                    3800,
+
+                iterations:
+                    Infinity,
+
+                easing:
+                    "ease-in-out"
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        animation === "bounce"
+    ) {
+
+        animateElement(
+            avatarElement,
+
+            [
+                {
+                    transform:
+                        "translateY(0) scale(1)"
+                },
+
+                {
+                    transform:
+                        "translateY(-4px) scale(1.015)"
+                },
+
+                {
+                    transform:
+                        "translateY(0) scale(1)"
+                }
+            ],
+
+            {
+                duration:
+                    1700,
+
+                iterations:
+                    Infinity,
+
+                easing:
+                    "ease-in-out"
+            }
+        );
+    }
+}
+
 
 async function registerView() {
 
@@ -896,8 +1120,9 @@ async function registerView() {
 
 
     if (
-        localStorage.getItem(key) ===
-        "1"
+        localStorage.getItem(
+            key
+        ) === "1"
     ) {
         return;
     }
@@ -955,23 +1180,9 @@ async function registerView() {
 }
 
 
-/* ========================================
-   LIKE
-======================================== */
-
 async function likeProfile() {
 
     if (!profile) {
-        return;
-    }
-
-
-    if (
-        Number(
-            profile.likes_enabled ||
-            0
-        ) !== 1
-    ) {
         return;
     }
 
@@ -991,13 +1202,24 @@ async function likeProfile() {
     }
 
 
+    if (
+        Number(
+            profile.likes_enabled ||
+            0
+        ) !== 1
+    ) {
+        return;
+    }
+
+
     const key =
         `mullar_like_${profile.username}`;
 
 
     if (
-        localStorage.getItem(key) ===
-        "1"
+        localStorage.getItem(
+            key
+        ) === "1"
     ) {
         return;
     }
@@ -1042,6 +1264,7 @@ async function likeProfile() {
         likeButton.textContent =
             "♥";
 
+
         likeButton.classList.add(
             "liked"
         );
@@ -1071,32 +1294,93 @@ async function likeProfile() {
 }
 
 
-/* ========================================
-   ERROR
-======================================== */
+function renderProfile() {
 
-function showError() {
+    usernameElement.textContent =
+        profile.username ||
+        "Mullar";
 
-    if (loading) {
-        loading.style.display =
-            "none";
+
+    handleElement.textContent =
+        `@${profile.username ||
+            "mullar"}`;
+
+
+    bioElement.textContent =
+        profile.bio ||
+        "No Bio Yet";
+
+
+    if (
+        profile.created_at
+    ) {
+
+        const date =
+            new Date(
+                profile.created_at
+            );
+
+
+        if (
+            !Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            memberSince.textContent =
+                date.toLocaleDateString(
+                    "pl-PL",
+                    {
+                        day:
+                            "2-digit",
+
+                        month:
+                            "2-digit",
+
+                        year:
+                            "numeric"
+                    }
+                );
+        }
     }
 
-    if (profileCard) {
-        profileCard.style.display =
-            "none";
-    }
 
-    if (errorScreen) {
-        errorScreen.style.display =
-            "flex";
-    }
+    renderPlan();
+
+    renderAvatar();
+
+    renderLinks();
+
+    renderColors();
+
+    renderOG();
+
+    renderStats();
+
+    renderMusic();
+
+    renderBanner();
+
+    renderAnimation();
+
+
+    document.title =
+        `${profile.username} — Mullar.Online`;
 }
 
 
-/* ========================================
-   LOAD
-======================================== */
+function showError() {
+
+    loading.style.display =
+        "none";
+
+    profileCard.style.display =
+        "none";
+
+    errorScreen.style.display =
+        "flex";
+}
+
 
 async function loadProfile() {
 
@@ -1160,7 +1444,7 @@ async function loadProfile() {
     } catch (error) {
 
         console.error(
-            "Profile load error:",
+            "Profile error:",
             error
         );
 

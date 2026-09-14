@@ -6,30 +6,26 @@ const token =
         "mullar_token"
     );
 
-if (!token) {
 
+const $ =
+    id =>
+        document.getElementById(id);
+
+
+if (!token) {
     window.location.href =
         "/login.html";
 }
 
 
-const $ =
-    (id) => document.getElementById(id);
+let currentUser = null;
 
 
 const form =
     $("profileForm");
 
 
-let currentUser =
-    null;
-
-
-// ========================================
-// PLAN
-// ========================================
-
-function getPlan() {
+function plan() {
 
     return String(
         currentUser?.plan ||
@@ -41,58 +37,47 @@ function getPlan() {
 function isPro() {
 
     return (
-        getPlan() === "pro" ||
-        getPlan() === "premium"
+        plan() === "pro" ||
+        plan() === "premium"
     );
 }
 
 
 function isPremium() {
 
-    return (
-        getPlan() === "premium"
-    );
+    return plan() === "premium";
 }
 
 
-// ========================================
-// KOLORY
-// ========================================
-
-function validColor(value) {
-
-    return /^#[0-9a-fA-F]{6}$/.test(
-        value
-    );
-}
-
-
-function setupColor(
-    pickerId,
-    defaultValue
+function setStatus(
+    message,
+    type = ""
 ) {
 
-    const picker =
-        $(pickerId);
+    const element =
+        $("saveStatus");
 
-    if (!picker) {
+    if (!element) {
         return;
     }
 
-    picker.value =
-        validColor(
-            picker.value
-        )
-            ? picker.value
-            : defaultValue;
+    element.textContent =
+        message;
+
+    element.className =
+        "save-status";
+
+    if (type) {
+        element.classList.add(
+            type
+        );
+    }
 }
 
 
-// ========================================
-// DODATKOWE LINKI
-// ========================================
-
-function parseLinks(value) {
+function parseLinks(
+    value
+) {
 
     if (Array.isArray(value)) {
         return value;
@@ -116,35 +101,71 @@ function parseLinks(value) {
 }
 
 
+function renderAvatarPreview(
+    url,
+    fallback
+) {
+
+    const preview =
+        $("avatarPreview");
+
+    preview.innerHTML =
+        "";
+
+
+    if (url) {
+
+        const image =
+            document.createElement(
+                "img"
+            );
+
+        image.src =
+            url;
+
+        image.alt =
+            "Avatar";
+
+        image.onerror =
+            () => {
+
+                preview.innerHTML =
+                    "";
+
+                preview.textContent =
+                    fallback;
+            };
+
+        preview.appendChild(
+            image
+        );
+
+    } else {
+
+        preview.textContent =
+            fallback;
+    }
+}
+
+
 function renderLinks() {
 
     const container =
         $("linksList");
 
-
-    if (!container) {
-        return;
-    }
-
-
     container.innerHTML =
         "";
 
 
-    let limit = 0;
+    const limit =
+        isPremium()
+            ? 5
+            : isPro()
+                ? 2
+                : 0;
 
 
-    if (isPremium()) {
-
-        limit = 5;
-
-    } else if (isPro()) {
-
-        limit = 2;
-    }
-
-
-    if (limit === 0) {
+    if (!limit) {
 
         container.innerHTML = `
             <div class="link-item">
@@ -153,7 +174,7 @@ function renderLinks() {
                 </strong>
 
                 <div class="hint">
-                    Aktywuj PRO lub Premium w panelu konta.
+                    Aktywuj plan w panelu konta.
                 </div>
             </div>
         `;
@@ -178,16 +199,16 @@ function renderLinks() {
             links[i] || {};
 
 
-        const box =
+        const item =
             document.createElement(
                 "div"
             );
 
-        box.className =
+        item.className =
             "link-item";
 
 
-        box.innerHTML = `
+        item.innerHTML = `
             <div class="link-head">
 
                 <span class="link-number">
@@ -206,7 +227,7 @@ function renderLinks() {
 
             <div class="fields two">
 
-                <div class="field">
+                <div>
 
                     <label>
                         NAZWA
@@ -215,14 +236,12 @@ function renderLinks() {
                     <input
                         id="link_title_${i}"
                         type="text"
-                        value=""
                         placeholder="Moja strona"
                     >
 
                 </div>
 
-
-                <div class="field">
+                <div>
 
                     <label>
                         URL
@@ -231,7 +250,6 @@ function renderLinks() {
                     <input
                         id="link_url_${i}"
                         type="url"
-                        value=""
                         placeholder="https://..."
                     >
 
@@ -240,7 +258,7 @@ function renderLinks() {
                 ${
                     isPremium()
                         ? `
-                            <div class="field">
+                            <div>
 
                                 <label>
                                     IKONA URL
@@ -249,7 +267,6 @@ function renderLinks() {
                                 <input
                                     id="link_icon_${i}"
                                     type="url"
-                                    value=""
                                     placeholder="https://..."
                                 >
 
@@ -263,19 +280,15 @@ function renderLinks() {
 
 
         container.appendChild(
-            box
+            item
         );
 
 
-        $(
-            `link_title_${i}`
-        ).value =
+        $(`link_title_${i}`).value =
             link.title || "";
 
 
-        $(
-            `link_url_${i}`
-        ).value =
+        $(`link_url_${i}`).value =
             link.url || "";
 
 
@@ -291,22 +304,388 @@ function renderLinks() {
 }
 
 
-// ========================================
-// WCZYTANIE DANYCH
-// ========================================
+function updateRestrictions() {
 
-async function loadProfile() {
+    const pro =
+        isPro();
+
+    const premium =
+        isPremium();
+
+
+    $("likes_enabled").disabled =
+        !pro;
+
+    if (!pro) {
+        $("likes_enabled").checked =
+            false;
+    }
+
+
+    $("profile_color").disabled =
+        !pro;
+
+    $("name_color").disabled =
+        !pro;
+
+    $("glow1_color").disabled =
+        !pro;
+
+    $("glow2_color").disabled =
+        !pro;
+
+
+    $("neon_name").disabled =
+        !premium;
+
+    if (!premium) {
+        $("neon_name").checked =
+            false;
+    }
+
+
+    $("music_url").disabled =
+        !premium;
+
+    if (!premium) {
+        $("music_url").value =
+            "";
+    }
+
+
+    $("profile_animation").disabled =
+        !premium;
+
+    if (!premium) {
+
+        $("profile_animation").value =
+            "none";
+
+        $("animationHint").textContent =
+            "Animacje są dostępne dla Premium.";
+
+    } else {
+
+        $("animationHint").textContent =
+            "Wybierz animację Premium.";
+
+    }
+
+
+    $("likesHint").textContent =
+        pro
+            ? "Odwiedzający mogą polubić Twój profil."
+            : "Dostępne dla PRO i Premium.";
+}
+
+
+async function getMe() {
+
+    const response =
+        await fetch(
+            `${API}/api/me`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                }
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        !data.loggedIn
+    ) {
+
+        localStorage.removeItem(
+            "mullar_token"
+        );
+
+        window.location.href =
+            "/login.html";
+
+        return null;
+    }
+
+
+    return data.user;
+}
+
+
+async function uploadAvatar(
+    file
+) {
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+
+    const response =
+        await fetch(
+            `${API}/api/profile/avatar`,
+            {
+                method: "POST",
+
+                headers: {
+                    Authorization:
+                        `Bearer ${token}`
+                },
+
+                body:
+                    formData
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.message ||
+            "Nie udało się przesłać avatara."
+        );
+    }
+
+
+    if (!data.url) {
+
+        throw new Error(
+            "Serwer nie zwrócił adresu avatara."
+        );
+    }
+
+
+    return data.url;
+}
+
+
+function collectLinks() {
+
+    const max =
+        isPremium()
+            ? 5
+            : isPro()
+                ? 2
+                : 0;
+
+
+    const links = [];
+
+
+    for (
+        let i = 0;
+        i < max;
+        i++
+    ) {
+
+        const title =
+            $(`link_title_${i}`)
+                ?.value
+                .trim() || "";
+
+        const url =
+            $(`link_url_${i}`)
+                ?.value
+                .trim() || "";
+
+        const icon =
+            $(`link_icon_${i}`)
+                ?.value
+                .trim() || "";
+
+
+        if (
+            !title &&
+            !url
+        ) {
+            continue;
+        }
+
+
+        if (
+            !title ||
+            !url
+        ) {
+
+            throw new Error(
+                `Uzupełnij nazwę i URL linku ${i + 1}.`
+            );
+        }
+
+
+        links.push({
+            title,
+            url,
+            icon:
+                isPremium()
+                    ? icon
+                    : ""
+        });
+    }
+
+
+    return links;
+}
+
+
+async function saveProfile(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const button =
+        $("saveBtn");
+
+
+    button.disabled =
+        true;
+
+    button.textContent =
+        "Zapisywanie...";
+
 
     try {
 
+        let avatar =
+            currentUser.avatar ||
+            "";
+
+
+        const avatarFile =
+            $("avatarFile")
+                .files?.[0];
+
+
+        if (avatarFile) {
+
+            setStatus(
+                "Przesyłanie avatara..."
+            );
+
+
+            avatar =
+                await uploadAvatar(
+                    avatarFile
+                );
+        }
+
+
+        const payload = {
+
+            bio:
+                $("bio").value.trim(),
+
+            discord:
+                $("discord")
+                    .value
+                    .trim(),
+
+            github:
+                $("github")
+                    .value
+                    .trim(),
+
+            instagram:
+                $("instagram")
+                    .value
+                    .trim(),
+
+            avatar,
+
+            banner:
+                currentUser.banner ||
+                "",
+
+            og_hidden:
+                $("og_hidden").checked
+                    ? 1
+                    : 0,
+
+            views_enabled:
+                $("views_enabled").checked
+                    ? 1
+                    : 0,
+
+            likes_enabled:
+                isPro() &&
+                $("likes_enabled").checked
+                    ? 1
+                    : 0,
+
+            profile_color:
+                $("profile_color").value,
+
+            name_color:
+                $("name_color").value,
+
+            neon_name:
+                isPremium() &&
+                $("neon_name").checked
+                    ? 1
+                    : 0,
+
+            glow1_color:
+                $("glow1_color").value,
+
+            glow2_color:
+                $("glow2_color").value,
+
+            extra_links:
+                collectLinks(),
+
+            music_url:
+                isPremium()
+                    ? $("music_url")
+                        .value
+                        .trim()
+                    : "",
+
+            profile_animation:
+                isPremium()
+                    ? $("profile_animation")
+                        .value
+                    : "none"
+        };
+
+
+        setStatus(
+            "Zapisywanie profilu..."
+        );
+
+
         const response =
             await fetch(
-                `${API}/api/me`,
+                `${API}/api/profile/update`,
                 {
+                    method: "POST",
+
                     headers: {
                         Authorization:
-                            `Bearer ${token}`
-                    }
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
                 }
             );
 
@@ -315,24 +694,242 @@ async function loadProfile() {
             await response.json();
 
 
-        if (
-            !response.ok ||
-            !data.loggedIn
-        ) {
+        if (!response.ok) {
 
-            localStorage.removeItem(
-                "mullar_token"
+            throw new Error(
+                data.message ||
+                data.error ||
+                `Błąd HTTP ${response.status}`
             );
-
-            window.location.href =
-                "/login.html";
-
-            return;
         }
 
 
         currentUser =
-            data.user;
+            await getMe();
+
+
+        if (!currentUser) {
+            return;
+        }
+
+
+        renderAvatarPreview(
+            currentUser.avatar,
+            String(
+                currentUser.username ||
+                "M"
+            )
+                .charAt(0)
+                .toUpperCase()
+        );
+
+
+        updateRestrictions();
+
+        renderLinks();
+
+
+        $("avatarFile").value =
+            "";
+
+
+        $("profile_animation").value =
+            currentUser.profile_animation ||
+            "none";
+
+
+        setStatus(
+            "✓ Profil został zapisany.",
+            "ok"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Mullar profile save:",
+            error
+        );
+
+
+        setStatus(
+            `✕ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            "Zapisz zmiany";
+    }
+}
+
+
+$("avatarFile")
+    .addEventListener(
+        "change",
+        () => {
+
+            const file =
+                $("avatarFile")
+                    .files?.[0];
+
+
+            if (!file) {
+                return;
+            }
+
+
+            if (
+                file.size >
+                5 * 1024 * 1024
+            ) {
+
+                setStatus(
+                    "✕ Avatar może mieć maksymalnie 5 MB.",
+                    "error"
+                );
+
+                $("avatarFile").value =
+                    "";
+
+                return;
+            }
+
+
+            const allowed =
+                new Set([
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                    "image/gif"
+                ]);
+
+
+            if (
+                !allowed.has(
+                    file.type
+                )
+            ) {
+
+                setStatus(
+                    "✕ Dozwolone są JPG, PNG, WEBP i GIF.",
+                    "error"
+                );
+
+                $("avatarFile").value =
+                    "";
+
+                return;
+            }
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                event => {
+
+                    renderAvatarPreview(
+                        event.target.result,
+                        "M"
+                    );
+                };
+
+
+            reader.readAsDataURL(
+                file
+            );
+        }
+    );
+
+
+document
+    .querySelectorAll(
+        ".nav-btn"
+    )
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const target =
+                    button.dataset.section;
+
+
+                document
+                    .querySelectorAll(
+                        ".nav-btn"
+                    )
+                    .forEach(item => {
+                        item.classList.remove(
+                            "active"
+                        );
+                    });
+
+
+                document
+                    .querySelectorAll(
+                        ".section"
+                    )
+                    .forEach(section => {
+                        section.classList.remove(
+                            "active"
+                        );
+                    });
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                $(
+                    `section-${target}`
+                )?.classList.add(
+                    "active"
+                );
+
+
+                if (
+                    target ===
+                    "appearance"
+                ) {
+
+                    history.replaceState(
+                        null,
+                        "",
+                        "#appearance"
+                    );
+                } else {
+
+                    history.replaceState(
+                        null,
+                        "",
+                        "#basic"
+                    );
+                }
+            }
+        );
+    });
+
+
+async function init() {
+
+    try {
+
+        currentUser =
+            await getMe();
+
+
+        if (!currentUser) {
+            return;
+        }
 
 
         $("bio").value =
@@ -374,6 +971,11 @@ async function loadProfile() {
             "#0e0e0e";
 
 
+        $("name_color").value =
+            currentUser.name_color ||
+            "#ffffff";
+
+
         $("glow1_color").value =
             currentUser.glow1_color ||
             "#6b4cff";
@@ -382,11 +984,6 @@ async function loadProfile() {
         $("glow2_color").value =
             currentUser.glow2_color ||
             "#00aaff";
-
-
-        $("name_color").value =
-            currentUser.name_color ||
-            "#ffffff";
 
 
         $("neon_name").checked =
@@ -399,481 +996,66 @@ async function loadProfile() {
             currentUser.music_url || "";
 
 
+        $("profile_animation").value =
+            currentUser.profile_animation ||
+            "none";
+
+
+        $("profileLink").href =
+            `/profile.html?user=${encodeURIComponent(
+                currentUser.username
+            )}`;
+
+
+        renderAvatarPreview(
+            currentUser.avatar,
+            String(
+                currentUser.username ||
+                "M"
+            )
+                .charAt(0)
+                .toUpperCase()
+        );
+
+
         updateRestrictions();
 
         renderLinks();
 
 
+        if (
+            window.location.hash ===
+            "#appearance"
+        ) {
+
+            document
+                .querySelector(
+                    '[data-section="appearance"]'
+                )
+                ?.click();
+        }
+
+
+        form.addEventListener(
+            "submit",
+            saveProfile
+        );
+
+
     } catch (error) {
 
         console.error(
-            "Profile error:",
+            "Mullar editor init:",
             error
         );
 
-        setMessage(
-            error.message ||
-            "Nie udało się pobrać profilu.",
-            true
+
+        setStatus(
+            `✕ ${error.message}`,
+            "error"
         );
     }
 }
 
 
-// ========================================
-// OGRANICZENIA PLANÓW
-// ========================================
-
-function updateRestrictions() {
-
-    const pro =
-        isPro();
-
-    const premium =
-        isPremium();
-
-
-    const likes =
-        $("likes_enabled");
-
-    const neon =
-        $("neon_name");
-
-    const music =
-        $("music_url");
-
-
-    if (likes) {
-
-        likes.disabled =
-            !pro;
-
-        if (!pro) {
-            likes.checked =
-                false;
-        }
-    }
-
-
-    if (neon) {
-
-        neon.disabled =
-            !premium;
-
-        if (!premium) {
-            neon.checked =
-                false;
-        }
-    }
-
-
-    if (music) {
-
-        music.disabled =
-            !premium;
-
-        if (!premium) {
-            music.value =
-                "";
-        }
-    }
-
-
-    [
-        "profile_color",
-        "glow1_color",
-        "glow2_color",
-        "name_color"
-    ].forEach(
-        id => {
-
-            const element =
-                $(id);
-
-            if (element) {
-
-                element.disabled =
-                    !pro;
-            }
-        }
-    );
-}
-
-
-// ========================================
-// LINKI
-// ========================================
-
-function collectLinks() {
-
-    let limit =
-        isPremium()
-            ? 5
-            : isPro()
-                ? 2
-                : 0;
-
-
-    const links = [];
-
-
-    for (
-        let i = 0;
-        i < limit;
-        i++
-    ) {
-
-        const titleInput =
-            $(`link_title_${i}`);
-
-        const urlInput =
-            $(`link_url_${i}`);
-
-        const iconInput =
-            $(`link_icon_${i}`);
-
-
-        if (!titleInput || !urlInput) {
-            continue;
-        }
-
-
-        const title =
-            titleInput.value.trim();
-
-        const url =
-            urlInput.value.trim();
-
-        const icon =
-            iconInput
-                ? iconInput.value.trim()
-                : "";
-
-
-        if (!title && !url) {
-            continue;
-        }
-
-
-        if (!title || !url) {
-
-            throw new Error(
-                `Uzupełnij nazwę i URL linku ${i + 1}.`
-            );
-        }
-
-
-        links.push({
-            title,
-            url,
-            icon
-        });
-    }
-
-
-    return links;
-}
-
-
-// ========================================
-// KOMUNIKAT
-// ========================================
-
-function setMessage(
-    text,
-    error = false
-) {
-
-    const element =
-        $("saveStatus");
-
-
-    if (!element) {
-        return;
-    }
-
-
-    element.textContent =
-        text;
-
-
-    element.className =
-        error
-            ? "save-status error"
-            : "save-status ok";
-}
-
-
-// ========================================
-// ZAPIS
-// ========================================
-
-form.addEventListener(
-    "submit",
-    async event => {
-
-        event.preventDefault();
-
-
-        const saveButton =
-            $("saveBtn");
-
-
-        saveButton.disabled =
-            true;
-
-        saveButton.textContent =
-            "Zapisywanie...";
-
-
-        try {
-
-            const payload = {
-
-                bio:
-                    $("bio").value.trim(),
-
-                discord:
-                    $("discord").value.trim(),
-
-                github:
-                    $("github").value.trim(),
-
-                instagram:
-                    $("instagram").value.trim(),
-
-                og_hidden:
-                    $("og_hidden").checked
-                        ? 1
-                        : 0,
-
-                views_enabled:
-                    $("views_enabled").checked
-                        ? 1
-                        : 0,
-
-                likes_enabled:
-                    isPro() &&
-                    $("likes_enabled").checked
-                        ? 1
-                        : 0,
-
-                profile_color:
-                    isPro()
-                        ? $("profile_color").value
-                        : "#0e0e0e",
-
-                glow1_color:
-                    isPro()
-                        ? $("glow1_color").value
-                        : "#6b4cff",
-
-                glow2_color:
-                    isPro()
-                        ? $("glow2_color").value
-                        : "#00aaff",
-
-                name_color:
-                    isPro()
-                        ? $("name_color").value
-                        : "#ffffff",
-
-                neon_name:
-                    isPremium() &&
-                    $("neon_name").checked
-                        ? 1
-                        : 0,
-
-                extra_links:
-                    collectLinks(),
-
-                music_url:
-                    isPremium()
-                        ? $("music_url")
-                            .value
-                            .trim()
-                        : ""
-            };
-
-
-            const response =
-                await fetch(
-                    `${API}/api/profile/update`,
-                    {
-                        method: "POST",
-
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`,
-
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify(
-                                payload
-                            )
-                    }
-                );
-
-
-            const data =
-                await response.json();
-
-
-            if (!response.ok) {
-
-                throw new Error(
-                    data.message ||
-                    data.error ||
-                    `Błąd HTTP ${response.status}`
-                );
-            }
-
-
-            setMessage(
-                "✓ Profil został zapisany!"
-            );
-
-
-            currentUser =
-                await (
-                    await fetch(
-                        `${API}/api/me`,
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
-                        }
-                    )
-                ).json();
-
-
-            if (
-                currentUser.user
-            ) {
-
-                currentUser =
-                    currentUser.user;
-            }
-
-
-            updateRestrictions();
-
-            renderLinks();
-
-
-        } catch (error) {
-
-            console.error(
-                "Save error:",
-                error
-            );
-
-            setMessage(
-                error.message ||
-                "Nie udało się zapisać profilu.",
-                true
-            );
-
-        } finally {
-
-            saveButton.disabled =
-                false;
-
-            saveButton.textContent =
-                "Zapisz zmiany";
-        }
-    }
-);
-
-
-// ========================================
-// NAWIGACJA EDYTORA
-// ========================================
-
-document
-    .querySelectorAll(".nav-btn")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                const target =
-                    button.dataset.section;
-
-
-                document
-                    .querySelectorAll(
-                        ".nav-btn"
-                    )
-                    .forEach(item => {
-                        item.classList.remove(
-                            "active"
-                        );
-                    });
-
-
-                document
-                    .querySelectorAll(
-                        ".section"
-                    )
-                    .forEach(section => {
-                        section.classList.remove(
-                            "active"
-                        );
-                    });
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                const section =
-                    $(
-                        `section-${target}`
-                    );
-
-
-                if (section) {
-
-                    section.classList.add(
-                        "active"
-                    );
-                }
-
-            }
-        );
-    });
-
-
-// ========================================
-// START
-// ========================================
-
-setupColor(
-    "profile_color",
-    "#0e0e0e"
-);
-
-setupColor(
-    "glow1_color",
-    "#6b4cff"
-);
-
-setupColor(
-    "glow2_color",
-    "#00aaff"
-);
-
-setupColor(
-    "name_color",
-    "#ffffff"
-);
-
-
-loadProfile();
+init();

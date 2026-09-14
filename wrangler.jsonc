@@ -11,5 +11,11 @@
       "database_name": "mullar-db",
       "database_id": "be2fc403-610e-4a7a-a390-077cfe59bee3"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MULLAR_MEDIA",
+      "bucket_name": "mullar-media"
+    }
   ]
 }

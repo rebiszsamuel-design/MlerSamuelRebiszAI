@@ -5,17 +5,41 @@ const ALLOWED_ORIGINS = new Set([
   "http://localhost:3000"
 ]);
 
-function getCorsOrigin(request) {
-  const origin = request.headers.get("Origin");
+const OG_CUTOFF =
+  new Date("2026-09-30T23:59:59.999Z");
 
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+const AVATAR_MAX_BYTES =
+  5 * 1024 * 1024;
+
+const ALLOWED_ANIMATIONS =
+  new Set([
+    "none",
+    "float",
+    "pulse",
+    "glow",
+    "tilt",
+    "bounce"
+  ]);
+
+
+function getCorsOrigin(request) {
+
+  const origin =
+    request.headers.get("Origin");
+
+  if (
+    origin &&
+    ALLOWED_ORIGINS.has(origin)
+  ) {
     return origin;
   }
 
   return "https://mullar.online";
 }
 
+
 function corsHeaders(request) {
+
   return {
     "Access-Control-Allow-Origin":
       getCorsOrigin(request),
@@ -34,11 +58,13 @@ function corsHeaders(request) {
   };
 }
 
+
 function json(
   request,
   data,
   status = 200
 ) {
+
   return new Response(
     JSON.stringify(data),
     {
@@ -54,9 +80,13 @@ function json(
   );
 }
 
+
 function getToken(request) {
+
   const authorization =
-    request.headers.get("Authorization");
+    request.headers.get(
+      "Authorization"
+    );
 
   if (!authorization) {
     return null;
@@ -78,7 +108,9 @@ function getToken(request) {
   return token || null;
 }
 
+
 async function hashPassword(password) {
+
   const encoder =
     new TextEncoder();
 
@@ -103,7 +135,9 @@ async function hashPassword(password) {
     .join("");
 }
 
-function createSessionToken() {
+
+function createToken() {
+
   const bytes =
     new Uint8Array(32);
 
@@ -119,69 +153,9 @@ function createSessionToken() {
     .join("");
 }
 
-function publicUser(user) {
-  return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    plan: user.plan,
-    plan_expires_at:
-      user.plan_expires_at,
-    bio: user.bio,
-    discord: user.discord,
-    github: user.github,
-    instagram: user.instagram,
-    avatar: user.avatar,
-    banner: user.banner,
-    created_at: user.created_at
-  };
-}
 
-async function getUserFromRequest(
-  request,
-  env
-) {
-  const token =
-    getToken(request);
+function randomPart() {
 
-  if (!token) {
-    return null;
-  }
-
-  const user =
-    await env.mullar_db
-      .prepare(`
-        SELECT
-          users.id,
-          users.username,
-          users.email,
-          users.plan,
-          users.plan_expires_at,
-          users.bio,
-          users.discord,
-          users.github,
-          users.instagram,
-          users.avatar,
-          users.banner,
-          users.created_at
-        FROM sessions
-        INNER JOIN users
-          ON users.id = sessions.user_id
-        WHERE sessions.token = ?
-        LIMIT 1
-      `)
-      .bind(token)
-      .first();
-
-  return user || null;
-}
-
-
-// ========================================
-// ACTIVATION CODE GENERATOR
-// ========================================
-
-function generateRandomCodePart() {
   const alphabet =
     "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -202,7 +176,11 @@ function generateRandomCodePart() {
   return result;
 }
 
-function generateActivationCode(plan) {
+
+function generateActivationCode(
+  plan
+) {
+
   const prefix =
     plan === "pro"
       ? "MLR-PRO"
@@ -210,10 +188,531 @@ function generateActivationCode(plan) {
 
   return [
     prefix,
-    generateRandomCodePart(),
-    generateRandomCodePart(),
-    generateRandomCodePart()
+    randomPart(),
+    randomPart(),
+    randomPart()
   ].join("-");
+}
+
+
+function isPremium(user) {
+
+  return String(
+    user?.plan || "free"
+  ).toLowerCase() ===
+    "premium";
+}
+
+
+function isPaid(user) {
+
+  const plan =
+    String(
+      user?.plan || "free"
+    ).toLowerCase();
+
+  return (
+    plan === "pro" ||
+    plan === "premium"
+  );
+}
+
+
+function isOgEligible(user) {
+
+  if (!user?.created_at) {
+    return false;
+  }
+
+  const created =
+    new Date(
+      user.created_at
+    );
+
+  if (
+    Number.isNaN(
+      created.getTime()
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    created.getTime() <=
+    OG_CUTOFF.getTime()
+  );
+}
+
+
+function publicUser(user) {
+
+  return {
+    id:
+      user.id,
+
+    username:
+      user.username,
+
+    email:
+      user.email,
+
+    plan:
+      user.plan,
+
+    plan_expires_at:
+      user.plan_expires_at,
+
+    bio:
+      user.bio || "",
+
+    discord:
+      user.discord || "",
+
+    github:
+      user.github || "",
+
+    instagram:
+      user.instagram || "",
+
+    avatar:
+      user.avatar || "",
+
+    banner:
+      user.banner || "",
+
+    og_hidden:
+      Number(
+        user.og_hidden || 0
+      ),
+
+    likes_enabled:
+      Number(
+        user.likes_enabled || 0
+      ),
+
+    views_enabled:
+      Number(
+        user.views_enabled ?? 1
+      ),
+
+    likes_count:
+      Number(
+        user.likes_count || 0
+      ),
+
+    views_count:
+      Number(
+        user.views_count || 0
+      ),
+
+    profile_color:
+      user.profile_color ||
+      "#0e0e0e",
+
+    name_color:
+      user.name_color ||
+      "#ffffff",
+
+    neon_name:
+      Number(
+        user.neon_name || 0
+      ),
+
+    glow1_color:
+      user.glow1_color ||
+      "#6b4cff",
+
+    glow2_color:
+      user.glow2_color ||
+      "#00aaff",
+
+    extra_links:
+      user.extra_links || "[]",
+
+    music_url:
+      user.music_url || "",
+
+    profile_animation:
+      user.profile_animation ||
+      "none",
+
+    created_at:
+      user.created_at
+  };
+}
+
+
+async function getUserFromRequest(
+  request,
+  env
+) {
+
+  const token =
+    getToken(request);
+
+  if (!token) {
+    return null;
+  }
+
+  const user =
+    await env.mullar_db
+      .prepare(`
+        SELECT
+          users.*
+        FROM sessions
+        INNER JOIN users
+          ON users.id = sessions.user_id
+        WHERE sessions.token = ?
+        LIMIT 1
+      `)
+      .bind(token)
+      .first();
+
+  return user || null;
+}
+
+
+function cleanHttpUrl(
+  value
+) {
+
+  const input =
+    String(value || "")
+      .trim();
+
+  if (!input) {
+    return "";
+  }
+
+  try {
+
+    const url =
+      new URL(input);
+
+    if (
+      url.protocol !== "http:" &&
+      url.protocol !== "https:"
+    ) {
+      return "";
+    }
+
+    return url.href;
+
+  } catch {
+
+    return "";
+  }
+}
+
+
+function parseLinks(
+  value
+) {
+
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (!value) {
+    return [];
+  }
+
+  try {
+
+    const parsed =
+      JSON.parse(value);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+
+  } catch {
+
+    return [];
+  }
+}
+
+
+function normalizeLinks(
+  value,
+  max,
+  premium
+) {
+
+  const input =
+    parseLinks(value);
+
+  const result = [];
+
+  for (
+    const item of input.slice(
+      0,
+      max
+    )
+  ) {
+
+    if (
+      !item ||
+      typeof item !== "object"
+    ) {
+      continue;
+    }
+
+    const title =
+      String(
+        item.title || ""
+      ).trim();
+
+    const url =
+      cleanHttpUrl(
+        item.url
+      );
+
+    const icon =
+      premium
+        ? cleanHttpUrl(
+            item.icon
+          )
+        : "";
+
+    if (
+      !title ||
+      !url
+    ) {
+      continue;
+    }
+
+    result.push({
+      title:
+        title.slice(0, 60),
+
+      url,
+
+      icon
+    });
+  }
+
+  return result;
+}
+
+
+function extensionFromType(
+  type
+) {
+
+  const map = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif"
+  };
+
+  return map[type] || null;
+}
+
+
+function getMediaKeyFromUrl(
+  value
+) {
+
+  try {
+
+    const url =
+      new URL(value);
+
+    const marker =
+      "/media/";
+
+    const index =
+      url.pathname.indexOf(
+        marker
+      );
+
+    if (index === -1) {
+      return null;
+    }
+
+    return decodeURIComponent(
+      url.pathname.slice(
+        index + marker.length
+      )
+    );
+
+  } catch {
+
+    return null;
+  }
+}
+
+
+function makeMediaUrl(
+  request,
+  key
+) {
+
+  const origin =
+    new URL(request.url).origin;
+
+  return (
+    origin +
+    "/media/" +
+    encodeURIComponent(key)
+  );
+}
+
+
+async function saveUploadedImage(
+  request,
+  env,
+  user,
+  type
+) {
+
+  if (!env.MULLAR_MEDIA) {
+
+    throw new Error(
+      "R2 nie jest podłączone do Workera."
+    );
+  }
+
+
+  const contentType =
+    request.headers.get(
+      "Content-Type"
+    ) || "";
+
+
+  if (
+    !contentType.startsWith(
+      "multipart/form-data"
+    )
+  ) {
+
+    throw new Error(
+      "Upload musi być wysłany jako multipart/form-data."
+    );
+  }
+
+
+  const formData =
+    await request.formData();
+
+  const file =
+    formData.get("file");
+
+
+  if (
+    !file ||
+    typeof file.arrayBuffer !==
+      "function"
+  ) {
+
+    throw new Error(
+      "Nie wybrano pliku."
+    );
+  }
+
+
+  if (
+    file.size >
+    AVATAR_MAX_BYTES
+  ) {
+
+    throw new Error(
+      "Obraz może mieć maksymalnie 5 MB."
+    );
+  }
+
+
+  const extension =
+    extensionFromType(
+      file.type
+    );
+
+
+  if (!extension) {
+
+    throw new Error(
+      "Dozwolone są tylko JPG, PNG, WEBP i GIF."
+    );
+  }
+
+
+  const randomBytes =
+    new Uint8Array(16);
+
+  crypto.getRandomValues(
+    randomBytes
+  );
+
+
+  const randomId =
+    Array.from(
+      randomBytes
+    )
+      .map(
+        byte =>
+          byte
+            .toString(16)
+            .padStart(2, "0")
+      )
+      .join("");
+
+
+  const key =
+    `${type}s/${user.id}-${Date.now()}-${randomId}.${extension}`;
+
+
+  const oldUrl =
+    user[type] || "";
+
+
+  await env.MULLAR_MEDIA.put(
+    key,
+    file,
+    {
+      httpMetadata: {
+        contentType:
+          file.type,
+
+        cacheControl:
+          "public, max-age=31536000, immutable"
+      }
+    }
+  );
+
+
+  if (oldUrl) {
+
+    const oldKey =
+      getMediaKeyFromUrl(
+        oldUrl
+      );
+
+    if (
+      oldKey &&
+      oldKey.startsWith(
+        `${type}s/`
+      )
+    ) {
+
+      try {
+
+        await env.MULLAR_MEDIA.delete(
+          oldKey
+        );
+
+      } catch {
+        // Stary plik nie blokuje nowego uploadu.
+      }
+    }
+  }
+
+
+  return makeMediaUrl(
+    request,
+    key
+  );
 }
 
 
@@ -236,6 +735,7 @@ export default {
       request.method ===
       "OPTIONS"
     ) {
+
       return new Response(
         null,
         {
@@ -295,6 +795,95 @@ export default {
               error.message
           },
           500
+        );
+      }
+    }
+
+
+    // ========================================
+    // MEDIA
+    // ========================================
+
+    if (
+      request.method === "GET" &&
+      url.pathname.startsWith(
+        "/media/"
+      )
+    ) {
+
+      try {
+
+        const key =
+          decodeURIComponent(
+            url.pathname.slice(
+              "/media/".length
+            )
+          );
+
+
+        if (!key) {
+
+          return new Response(
+            "Not found",
+            {
+              status: 404
+            }
+          );
+        }
+
+
+        const object =
+          await env.MULLAR_MEDIA.get(
+            key
+          );
+
+
+        if (!object) {
+
+          return new Response(
+            "Not found",
+            {
+              status: 404,
+              headers:
+                corsHeaders(request)
+            }
+          );
+        }
+
+
+        const headers =
+          new Headers(
+            corsHeaders(request)
+          );
+
+
+        object.writeHttpMetadata(
+          headers
+        );
+
+
+        headers.set(
+          "ETag",
+          object.httpEtag
+        );
+
+
+        return new Response(
+          object.body,
+          {
+            headers
+          }
+        );
+
+      } catch (error) {
+
+        return new Response(
+          error.message,
+          {
+            status: 500,
+            headers:
+              corsHeaders(request)
+          }
         );
       }
     }
@@ -482,10 +1071,8 @@ export default {
           request,
           {
             ok: false,
-
             error:
               "Nie udało się utworzyć konta.",
-
             details:
               error.message
           },
@@ -592,7 +1179,7 @@ export default {
 
 
         const token =
-          createSessionToken();
+          createToken();
 
 
         await env.mullar_db
@@ -631,10 +1218,8 @@ export default {
           request,
           {
             ok: false,
-
             error:
               "Nie udało się zalogować.",
-
             details:
               error.message
           },
@@ -645,7 +1230,7 @@ export default {
 
 
     // ========================================
-    // CURRENT USER
+    // ME
     // ========================================
 
     if (
@@ -680,6 +1265,7 @@ export default {
           request,
           {
             ok: true,
+
             loggedIn: true,
 
             user:
@@ -710,6 +1296,12 @@ export default {
       request.method === "GET" &&
       url.pathname.startsWith(
         "/api/profile/"
+      ) &&
+      !url.pathname.endsWith(
+        "/view"
+      ) &&
+      !url.pathname.endsWith(
+        "/like"
       )
     ) {
 
@@ -730,7 +1322,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Brak użytkownika."
             },
@@ -753,7 +1344,20 @@ export default {
                 instagram,
                 avatar,
                 banner,
-                created_at
+                created_at,
+                og_hidden,
+                likes_enabled,
+                views_enabled,
+                likes_count,
+                views_count,
+                profile_color,
+                name_color,
+                neon_name,
+                glow1_color,
+                glow2_color,
+                extra_links,
+                music_url,
+                profile_animation
               FROM users
               WHERE username = ?
               LIMIT 1
@@ -770,7 +1374,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Nie znaleziono profilu."
             },
@@ -779,11 +1382,33 @@ export default {
         }
 
 
+        const result = {
+          ...profile,
+
+          og_eligible:
+            isOgEligible(profile),
+
+          og_visible:
+            isOgEligible(profile) &&
+            Number(
+              profile.og_hidden || 0
+            ) !== 1,
+
+          profile_animation:
+            ALLOWED_ANIMATIONS.has(
+              profile.profile_animation
+            )
+              ? profile.profile_animation
+              : "none"
+        };
+
+
         return json(
           request,
           {
             success: true,
-            profile
+            profile:
+              result
           }
         );
 
@@ -793,10 +1418,8 @@ export default {
           request,
           {
             success: false,
-
             message:
               "Nie udało się pobrać profilu.",
-
             details:
               error.message
           },
@@ -831,7 +1454,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Musisz być zalogowany."
             },
@@ -847,33 +1469,202 @@ export default {
         const bio =
           String(
             body.bio || ""
-          ).trim();
+          ).trim().slice(0, 500);
+
 
         const discord =
           String(
             body.discord || ""
-          ).trim();
+          ).trim().slice(0, 100);
+
 
         const github =
           String(
             body.github || ""
-          ).trim();
+          ).trim().slice(0, 100);
+
 
         const instagram =
           String(
             body.instagram || ""
-          ).trim();
+          ).trim().slice(0, 100);
 
 
-        if (bio.length > 500) {
+        const ogHidden =
+          Number(
+            body.og_hidden || 0
+          ) === 1
+            ? 1
+            : 0;
+
+
+        const viewsEnabled =
+          Number(
+            body.views_enabled ?? 1
+          ) === 1
+            ? 1
+            : 0;
+
+
+        const likesEnabled =
+          isPaid(user) &&
+          Number(
+            body.likes_enabled || 0
+          ) === 1
+            ? 1
+            : 0;
+
+
+        const profileColor =
+          isPaid(user)
+            ? String(
+                body.profile_color ||
+                "#0e0e0e"
+              )
+            : "#0e0e0e";
+
+
+        const nameColor =
+          isPaid(user)
+            ? String(
+                body.name_color ||
+                "#ffffff"
+              )
+            : "#ffffff";
+
+
+        const glow1 =
+          isPaid(user)
+            ? String(
+                body.glow1_color ||
+                "#6b4cff"
+              )
+            : "#6b4cff";
+
+
+        const glow2 =
+          isPaid(user)
+            ? String(
+                body.glow2_color ||
+                "#00aaff"
+              )
+            : "#00aaff";
+
+
+        const neonName =
+          isPremium(user) &&
+          Number(
+            body.neon_name || 0
+          ) === 1
+            ? 1
+            : 0;
+
+
+        const animation =
+          isPremium(user) &&
+          ALLOWED_ANIMATIONS.has(
+            String(
+              body.profile_animation ||
+              "none"
+            )
+          )
+            ? String(
+                body.profile_animation
+              )
+            : "none";
+
+
+        let extraLinks =
+          isPremium(user)
+            ? normalizeLinks(
+                body.extra_links,
+                5,
+                true
+              )
+            : isPaid(user)
+              ? normalizeLinks(
+                  body.extra_links,
+                  2,
+                  false
+                )
+              : [];
+
+
+        let musicUrl =
+          isPremium(user)
+            ? cleanHttpUrl(
+                body.music_url
+              )
+            : "";
+
+
+        const avatar =
+          cleanHttpUrl(
+            body.avatar ||
+            user.avatar ||
+            ""
+          );
+
+
+        const banner =
+          cleanHttpUrl(
+            body.banner ||
+            user.banner ||
+            ""
+          );
+
+
+        if (
+          !/^#[0-9a-fA-F]{6}$/.test(
+            profileColor
+          )
+        ) {
 
           return json(
             request,
             {
               success: false,
-
               message:
-                "Opis może mieć maksymalnie 500 znaków."
+                "Nieprawidłowy kolor profilu."
+            },
+            400
+          );
+        }
+
+
+        if (
+          !/^#[0-9a-fA-F]{6}$/.test(
+            nameColor
+          )
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Nieprawidłowy kolor nazwy."
+            },
+            400
+          );
+        }
+
+
+        if (
+          !/^#[0-9a-fA-F]{6}$/.test(
+            glow1
+          ) ||
+          !/^#[0-9a-fA-F]{6}$/.test(
+            glow2
+          )
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Nieprawidłowy kolor glow."
             },
             400
           );
@@ -887,7 +1678,20 @@ export default {
               bio = ?,
               discord = ?,
               github = ?,
-              instagram = ?
+              instagram = ?,
+              avatar = ?,
+              banner = ?,
+              og_hidden = ?,
+              likes_enabled = ?,
+              views_enabled = ?,
+              profile_color = ?,
+              name_color = ?,
+              neon_name = ?,
+              glow1_color = ?,
+              glow2_color = ?,
+              extra_links = ?,
+              music_url = ?,
+              profile_animation = ?
             WHERE id = ?
           `)
           .bind(
@@ -895,6 +1699,21 @@ export default {
             discord,
             github,
             instagram,
+            avatar,
+            banner,
+            ogHidden,
+            likesEnabled,
+            viewsEnabled,
+            profileColor,
+            nameColor,
+            neonName,
+            glow1,
+            glow2,
+            JSON.stringify(
+              extraLinks
+            ),
+            musicUrl,
+            animation,
             user.id
           )
           .run();
@@ -906,7 +1725,12 @@ export default {
             success: true,
 
             message:
-              "Profil został zapisany."
+              "Profil został zapisany.",
+
+            profile_animation:
+              animation,
+
+            avatar
           }
         );
 
@@ -930,7 +1754,414 @@ export default {
 
 
     // ========================================
-    // REDEEM CODE
+    // AVATAR UPLOAD
+    // ========================================
+
+    if (
+      request.method === "POST" &&
+      url.pathname ===
+        "/api/profile/avatar"
+    ) {
+
+      try {
+
+        const user =
+          await getUserFromRequest(
+            request,
+            env
+          );
+
+
+        if (!user) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Musisz być zalogowany."
+            },
+            401
+          );
+        }
+
+
+        const mediaUrl =
+          await saveUploadedImage(
+            request,
+            env,
+            user,
+            "avatar"
+          );
+
+
+        return json(
+          request,
+          {
+            success: true,
+
+            message:
+              "Avatar został przesłany.",
+
+            url:
+              mediaUrl
+          }
+        );
+
+      } catch (error) {
+
+        return json(
+          request,
+          {
+            success: false,
+
+            message:
+              error.message ||
+              "Nie udało się przesłać avatara."
+          },
+          400
+        );
+      }
+    }
+
+
+    // ========================================
+    // BANNER UPLOAD
+    // ========================================
+
+    if (
+      request.method === "POST" &&
+      url.pathname ===
+        "/api/profile/banner"
+    ) {
+
+      try {
+
+        const user =
+          await getUserFromRequest(
+            request,
+            env
+          );
+
+
+        if (!user) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Musisz być zalogowany."
+            },
+            401
+          );
+        }
+
+
+        const mediaUrl =
+          await saveUploadedImage(
+            request,
+            env,
+            user,
+            "banner"
+          );
+
+
+        return json(
+          request,
+          {
+            success: true,
+
+            message:
+              "Banner został przesłany.",
+
+            url:
+              mediaUrl
+          }
+        );
+
+      } catch (error) {
+
+        return json(
+          request,
+          {
+            success: false,
+
+            message:
+              error.message ||
+              "Nie udało się przesłać bannera."
+          },
+          400
+        );
+      }
+    }
+
+
+    // ========================================
+    // VIEW
+    // ========================================
+
+    if (
+      request.method === "POST" &&
+      url.pathname.match(
+        /^\/api\/profile\/[^/]+\/view$/
+      )
+    ) {
+
+      try {
+
+        const profileUsername =
+          decodeURIComponent(
+            url.pathname
+              .replace(
+                "/api/profile/",
+                ""
+              )
+              .replace(
+                "/view",
+                ""
+              )
+          );
+
+
+        const profile =
+          await env.mullar_db
+            .prepare(`
+              SELECT id, views_enabled
+              FROM users
+              WHERE username = ?
+              LIMIT 1
+            `)
+            .bind(
+              profileUsername
+            )
+            .first();
+
+
+        if (!profile) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Nie znaleziono profilu."
+            },
+            404
+          );
+        }
+
+
+        if (
+          Number(
+            profile.views_enabled ?? 1
+          ) !== 1
+        ) {
+
+          return json(
+            request,
+            {
+              success: true,
+              views_count: 0
+            }
+          );
+        }
+
+
+        await env.mullar_db
+          .prepare(`
+            UPDATE users
+            SET views_count =
+              views_count + 1
+            WHERE id = ?
+          `)
+          .bind(
+            profile.id
+          )
+          .run();
+
+
+        const result =
+          await env.mullar_db
+            .prepare(`
+              SELECT views_count
+              FROM users
+              WHERE id = ?
+            `)
+            .bind(
+              profile.id
+            )
+            .first();
+
+
+        return json(
+          request,
+          {
+            success: true,
+
+            views_count:
+              Number(
+                result?.views_count || 0
+              )
+          }
+        );
+
+      } catch (error) {
+
+        return json(
+          request,
+          {
+            success: false,
+            message:
+              "Nie udało się zarejestrować wyświetlenia.",
+            details:
+              error.message
+          },
+          500
+        );
+      }
+    }
+
+
+    // ========================================
+    // LIKE
+    // ========================================
+
+    if (
+      request.method === "POST" &&
+      url.pathname.match(
+        /^\/api\/profile\/[^/]+\/like$/
+      )
+    ) {
+
+      try {
+
+        const profileUsername =
+          decodeURIComponent(
+            url.pathname
+              .replace(
+                "/api/profile/",
+                ""
+              )
+              .replace(
+                "/like",
+                ""
+              )
+          );
+
+
+        const profile =
+          await env.mullar_db
+            .prepare(`
+              SELECT
+                id,
+                plan,
+                likes_enabled
+              FROM users
+              WHERE username = ?
+              LIMIT 1
+            `)
+            .bind(
+              profileUsername
+            )
+            .first();
+
+
+        if (!profile) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Nie znaleziono profilu."
+            },
+            404
+          );
+        }
+
+
+        if (
+          Number(
+            profile.likes_enabled || 0
+          ) !== 1 ||
+          (
+            profile.plan !== "pro" &&
+            profile.plan !== "premium"
+          )
+        ) {
+
+          return json(
+            request,
+            {
+              success: false,
+              message:
+                "Polubienia są wyłączone."
+            },
+            403
+          );
+        }
+
+
+        await env.mullar_db
+          .prepare(`
+            UPDATE users
+            SET likes_count =
+              likes_count + 1
+            WHERE id = ?
+          `)
+          .bind(
+            profile.id
+          )
+          .run();
+
+
+        const result =
+          await env.mullar_db
+            .prepare(`
+              SELECT likes_count
+              FROM users
+              WHERE id = ?
+            `)
+            .bind(
+              profile.id
+            )
+            .first();
+
+
+        return json(
+          request,
+          {
+            success: true,
+
+            likes_count:
+              Number(
+                result?.likes_count || 0
+              )
+          }
+        );
+
+      } catch (error) {
+
+        return json(
+          request,
+          {
+            success: false,
+
+            message:
+              "Nie udało się polubić profilu.",
+
+            details:
+              error.message
+          },
+          500
+        );
+      }
+    }
+
+
+    // ========================================
+    // REDEEM
     // ========================================
 
     if (
@@ -954,7 +2185,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Musisz być zalogowany."
             },
@@ -965,6 +2195,7 @@ export default {
 
         const body =
           await request.json();
+
 
         const code =
           String(
@@ -980,7 +2211,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Wpisz kod aktywacyjny."
             },
@@ -997,7 +2227,9 @@ export default {
               WHERE code = ?
               LIMIT 1
             `)
-            .bind(code)
+            .bind(
+              code
+            )
             .first();
 
 
@@ -1007,7 +2239,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Nieprawidłowy kod aktywacyjny."
             },
@@ -1026,7 +2257,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Ten kod został już wykorzystany."
             },
@@ -1080,18 +2310,13 @@ export default {
             request,
             {
               success: false,
-
               message:
-                "Ten kod ma nieprawidłowy plan."
+                "Kod ma nieprawidłowy plan."
             },
             400
           );
         }
 
-
-        // Najpierw próbujemy oznaczyć kod jako wykorzystany.
-        // Dzięki WHERE redeemed = 0 dwa równoczesne żądania
-        // nie powinny wykorzystać tego samego kodu.
 
         const redeemResult =
           await env.mullar_db
@@ -1100,7 +2325,8 @@ export default {
               SET
                 redeemed = 1,
                 redeemed_by = ?,
-                redeemed_at = CURRENT_TIMESTAMP
+                redeemed_at =
+                  CURRENT_TIMESTAMP
               WHERE id = ?
                 AND redeemed = 0
             `)
@@ -1121,7 +2347,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Ten kod został już wykorzystany."
             },
@@ -1147,10 +2372,7 @@ export default {
             )
             .run();
 
-        } catch (userUpdateError) {
-
-          // Awaryjnie cofamy oznaczenie kodu,
-          // jeżeli aktualizacja konta się nie uda.
+        } catch (error) {
 
           await env.mullar_db
             .prepare(`
@@ -1166,7 +2388,7 @@ export default {
             )
             .run();
 
-          throw userUpdateError;
+          throw error;
         }
 
 
@@ -1221,14 +2443,14 @@ export default {
 
         if (
           !adminKey ||
-          adminKey !== env.ADMIN_KEY
+          adminKey !==
+            env.ADMIN_KEY
         ) {
 
           return json(
             request,
             {
               success: false,
-
               message:
                 "Brak dostępu."
             },
@@ -1239,6 +2461,7 @@ export default {
 
         const body =
           await request.json();
+
 
         const plan =
           String(
@@ -1257,7 +2480,6 @@ export default {
             request,
             {
               success: false,
-
               message:
                 "Nieprawidłowy plan."
             },
@@ -1289,7 +2511,9 @@ export default {
                 WHERE code = ?
                 LIMIT 1
               `)
-              .bind(candidate)
+              .bind(
+                candidate
+              )
               .first();
 
 
@@ -1309,9 +2533,8 @@ export default {
             request,
             {
               success: false,
-
               message:
-                "Nie udało się wygenerować unikalnego kodu."
+                "Nie udało się wygenerować kodu."
             },
             500
           );
@@ -1350,10 +2573,8 @@ export default {
           request,
           {
             success: false,
-
             message:
               "Nie udało się wygenerować kodu.",
-
             details:
               error.message
           },
@@ -1386,7 +2607,9 @@ export default {
               DELETE FROM sessions
               WHERE token = ?
             `)
-            .bind(token)
+            .bind(
+              token
+            )
             .run();
         }
 
@@ -1407,40 +2630,12 @@ export default {
           request,
           {
             ok: false,
-
             error:
               error.message
           },
           500
         );
       }
-    }
-
-
-    // ========================================
-    // UPLOAD PLACEHOLDERS
-    // ========================================
-
-    if (
-      request.method === "POST" &&
-      (
-        url.pathname ===
-          "/api/profile/avatar" ||
-        url.pathname ===
-          "/api/profile/banner"
-      )
-    ) {
-
-      return json(
-        request,
-        {
-          success: false,
-
-          message:
-            "Upload plików nie jest jeszcze skonfigurowany."
-        },
-        503
-      );
     }
 
 
