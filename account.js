@@ -4,11 +4,17 @@ const API =
 const token =
     localStorage.getItem("mullar_token");
 
-const $ = (id) =>
-    document.getElementById(id);
+const $ =
+    (id) => document.getElementById(id);
+
+
+// ========================================
+// SESJA
+// ========================================
 
 if (!token) {
-    window.location.href = "/login.html";
+    window.location.href =
+        "/login.html";
 }
 
 
@@ -27,27 +33,42 @@ document
                 const target =
                     button.dataset.tab;
 
+
                 document
                     .querySelectorAll(
                         ".tab-button[data-tab]"
                     )
                     .forEach(item => {
-                        item.classList.remove("active");
+                        item.classList.remove(
+                            "active"
+                        );
                     });
+
 
                 document
-                    .querySelectorAll(".panel")
+                    .querySelectorAll(
+                        ".panel"
+                    )
                     .forEach(panel => {
-                        panel.classList.remove("active");
+                        panel.classList.remove(
+                            "active"
+                        );
                     });
 
-                button.classList.add("active");
+
+                button.classList.add(
+                    "active"
+                );
+
 
                 const panel =
                     $(`tab-${target}`);
 
+
                 if (panel) {
-                    panel.classList.add("active");
+                    panel.classList.add(
+                        "active"
+                    );
                 }
             }
         );
@@ -67,6 +88,7 @@ async function loadAccount() {
                 `${API}/api/me`,
                 {
                     method: "GET",
+
                     headers: {
                         Authorization:
                             `Bearer ${token}`
@@ -74,12 +96,15 @@ async function loadAccount() {
                 }
             );
 
+
         const data =
             await response.json();
 
+
         if (
             !response.ok ||
-            !data.loggedIn
+            !data.loggedIn ||
+            !data.user
         ) {
 
             localStorage.removeItem(
@@ -89,47 +114,61 @@ async function loadAccount() {
             window.location.href =
                 "/login.html";
 
-            return;
+            return null;
         }
+
 
         const user =
             data.user;
 
+
         const username =
-            user.username || "Użytkownik";
+            user.username ||
+            "Użytkownik";
+
 
         const email =
-            user.email || "—";
+            user.email ||
+            "—";
+
 
         const plan =
             String(
-                user.plan || "free"
+                user.plan ||
+                "free"
             ).toLowerCase();
 
 
-        // HEADER
+        // USERNAME
 
-        if ($("accountUsername")) {
+        const usernameHeader =
+            $("accountUsername");
 
-            $("accountUsername").textContent =
+        if (usernameHeader) {
+
+            usernameHeader.textContent =
                 username;
         }
 
 
-        // USERNAME CARD
+        const usernameCard =
+            $("accountUsernameCard");
 
-        if ($("accountUsernameCard")) {
+        if (usernameCard) {
 
-            $("accountUsernameCard").textContent =
+            usernameCard.textContent =
                 username;
         }
 
 
         // EMAIL
 
-        if ($("accountEmail")) {
+        const emailElement =
+            $("accountEmail");
 
-            $("accountEmail").textContent =
+        if (emailElement) {
+
+            emailElement.textContent =
                 email;
         }
 
@@ -157,31 +196,32 @@ async function loadAccount() {
                 )
             ) {
 
-                planText +=
-                    ` — do ${expiration.toLocaleDateString(
+                planText =
+                    `PRO — do ${expiration.toLocaleDateString(
                         "pl-PL"
                     )}`;
             }
         }
 
 
-        if (
-            plan === "premium"
-        ) {
+        if (plan === "premium") {
 
             planText =
-                "PREMIUM — BEZTERMINOWO";
+                "PREMIUM";
         }
 
 
-        if ($("accountPlan")) {
+        const planElement =
+            $("accountPlan");
 
-            $("accountPlan").textContent =
+        if (planElement) {
+
+            planElement.textContent =
                 planText;
         }
 
 
-        // PUBLIC PROFILE
+        // PUBLICZNY PROFIL
 
         const profileUrl =
             `/profile.html?user=${encodeURIComponent(
@@ -189,55 +229,78 @@ async function loadAccount() {
             )}`;
 
 
-        if ($("publicProfileLink")) {
+        const publicProfileLink =
+            $("publicProfileLink");
 
-            $("publicProfileLink").href =
+        if (publicProfileLink) {
+
+            publicProfileLink.href =
                 profileUrl;
         }
 
 
-        if ($("publicProfileButton")) {
+        const publicProfileButton =
+            $("publicProfileButton");
 
-            $("publicProfileButton").href =
+        if (publicProfileButton) {
+
+            publicProfileButton.href =
                 profileUrl;
         }
 
 
-        if ($("profilePreview")) {
+        const preview =
+            $("profilePreview");
 
-            $("profilePreview").src =
+        if (preview) {
+
+            preview.src =
                 profileUrl;
         }
 
+
+        return user;
 
     } catch (error) {
 
         console.error(
-            "Account error:",
+            "Mullar account error:",
             error
         );
 
-        if ($("accountUsername")) {
 
-            $("accountUsername").textContent =
+        const usernameElement =
+            $("accountUsername");
+
+        if (usernameElement) {
+
+            usernameElement.textContent =
                 "Błąd";
         }
 
-        if ($("accountEmail")) {
 
-            $("accountEmail").textContent =
-                error.message;
+        const emailElement =
+            $("accountEmail");
+
+        if (emailElement) {
+
+            emailElement.textContent =
+                "Nie udało się pobrać danych.";
         }
+
+
+        return null;
     }
 }
 
 
 // ========================================
-// AKTYWACJA KODU
+// AKTYWACJA PRO / PREMIUM
 // ========================================
 
 const redeemButton =
-    $("redeemBtn");
+    $("redeemButton");
+
 
 if (redeemButton) {
 
@@ -245,33 +308,41 @@ if (redeemButton) {
         "click",
         async () => {
 
-            const code =
-                $("activationCode")
-                    ?.value
-                    .trim()
-                    .toUpperCase();
-
+            const input =
+                $("activationCode");
 
             const message =
                 $("redeemMessage");
 
 
+            if (!input || !message) {
+                return;
+            }
+
+
+            const code =
+                input.value
+                    .trim()
+                    .toUpperCase();
+
+
             if (!code) {
 
-                if (message) {
-                    message.textContent =
-                        "Wpisz kod aktywacyjny.";
-                }
+                message.textContent =
+                    "Wpisz kod aktywacyjny.";
 
                 return;
             }
 
 
-            if (message) {
+            redeemButton.disabled =
+                true;
 
-                message.textContent =
-                    "Aktywowanie...";
-            }
+            redeemButton.textContent =
+                "Aktywowanie...";
+
+            message.textContent =
+                "Sprawdzanie kodu...";
 
 
             try {
@@ -298,36 +369,65 @@ if (redeemButton) {
                     );
 
 
-                const data =
-                    await response.json();
+                let data = null;
+
+
+                try {
+
+                    data =
+                        await response.json();
+
+                } catch {
+
+                    throw new Error(
+                        `Serwer zwrócił nieprawidłową odpowiedź HTTP ${response.status}.`
+                    );
+                }
 
 
                 if (!response.ok) {
 
-                    if (message) {
-                        message.textContent =
-                            data.message ||
-                            "Nie udało się aktywować kodu.";
-                    }
-
-                    return;
-                }
-
-
-                if (message) {
-
-                    message.textContent =
+                    throw new Error(
                         data.message ||
-                        "Kod został aktywowany.";
+                        data.error ||
+                        `Nie udało się aktywować kodu. HTTP ${response.status}`
+                    );
                 }
 
 
-                $("activationCode").value =
-                    "";
+                message.textContent =
+                    data.message ||
+                    "Plan został aktywowany.";
 
+
+                input.value = "";
+
+
+                /*
+                  Pobieramy konto ponownie,
+                  żeby od razu pokazać nowy plan.
+                */
 
                 await loadAccount();
 
+
+                /*
+                  Automatycznie przechodzimy
+                  do zakładki wyglądu,
+                  żeby od razu można było używać
+                  funkcji nowego planu.
+                */
+
+                const appearanceButton =
+                    document.querySelector(
+                        '.tab-button[data-tab="appearance"]'
+                    );
+
+
+                if (appearanceButton) {
+
+                    appearanceButton.click();
+                }
 
             } catch (error) {
 
@@ -336,11 +436,43 @@ if (redeemButton) {
                     error
                 );
 
-                if (message) {
 
-                    message.textContent =
-                        "Nie udało się połączyć z serwerem.";
-                }
+                message.textContent =
+                    `✕ ${error.message}`;
+            } finally {
+
+                redeemButton.disabled =
+                    false;
+
+                redeemButton.textContent =
+                    "Aktywuj";
+            }
+        }
+    );
+}
+
+
+// ========================================
+// ENTER = AKTYWUJ
+// ========================================
+
+const activationInput =
+    $("activationCode");
+
+
+if (activationInput) {
+
+    activationInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                redeemButton?.click();
             }
         }
     );
